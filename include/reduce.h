@@ -423,7 +423,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n, T *extraParams)  {
+	T postProcess(T reduction, Nd4jIndex n, T *extraParams)  {
 		return reduction;
 	}
 
@@ -491,13 +491,13 @@ public:
 #ifdef __CUDACC__
 	__host__
 #endif
-	T execScalar(T *x,int xElementWiseStride,int length,T *extraParams) {
+	T execScalar(T *x,int xElementWiseStride,Nd4jIndex length,T *extraParams) {
 		T startingVal = this->startingValue(x);
 		if (xElementWiseStride == 1) {
 			if(length < 8000) {
 				T local = this->startingValue(x);
 #pragma simd
-				for(int i = 0; i < length; i++) {
+				for(Nd4jIndex i = 0; i < length; i++) {
 					T curr = op(x[i], extraParams);
 					local = update(local, curr, extraParams);
 
@@ -515,9 +515,9 @@ public:
 				{
 					T local = this->startingValue(x);
 					for(int i = omp_get_thread_num(); i < info.chunks; i+= info.threads) {
-						int newOffset = (i * info.items);
+						Nd4jIndex newOffset = (i * info.items);
 						T *chunk = x + newOffset;
-						int itemsToLoop = info.items;
+						Nd4jIndex itemsToLoop = info.items;
 						if(newOffset >= length) {
 							break;
 						}
@@ -527,7 +527,7 @@ public:
 							itemsToLoop = length - newOffset;
 						}
 
-						for (int j = 0; j < itemsToLoop; j++) {
+						for (Nd4jIndex j = 0; j < itemsToLoop; j++) {
 							T curr = op(chunk[j], extraParams);
 							local = update(local, curr, extraParams);
 						}
@@ -553,7 +553,7 @@ public:
 			if(length < 8000) {
 				T local = this->startingValue(x);
 #pragma simd
-				for(int i = 0; i < length; i++) {
+				for(Nd4jIndex i = 0; i < length; i++) {
 					T curr = op(x[i *xElementWiseStride], extraParams);
 					local = update(local, curr, extraParams);
 
@@ -571,12 +571,12 @@ public:
 			{
 				T local = this->startingValue(x);
 				for(int i = omp_get_thread_num(); i < info.chunks; i+= info.threads) {
-					int newOffset = (i * info.items) * xElementWiseStride;
+					Nd4jIndex newOffset = (i * info.items) * xElementWiseStride;
 					T *chunk = x + newOffset;
-					int itemsToLoop = info.items;
+					Nd4jIndex itemsToLoop = info.items;
 
 
-					for (int i = 0; i < itemsToLoop; i++) {
+					for (Nd4jIndex i = 0; i < itemsToLoop; i++) {
 						T curr = op(chunk[i * xElementWiseStride], extraParams);
 						local = update(local, curr, extraParams);
 					}
@@ -613,7 +613,7 @@ public:
 	__host__
 #endif
 	T execScalar(T *x, int *xShapeInfo,T *extraParams) {
-		const int length = shape::length(xShapeInfo);
+		const Nd4jIndex length = shape::length(xShapeInfo);
 		int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 		if(xElementWiseStride >= 1) {
 			return execScalar(x, xElementWiseStride, length, extraParams);
@@ -915,7 +915,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction;
 	}
 
@@ -989,7 +989,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction;
 	}
 
@@ -1080,7 +1080,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction / (T) n;
 	}
 
@@ -1156,7 +1156,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction;
 	}
 
@@ -1242,7 +1242,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction;
 	}
 
@@ -1334,7 +1334,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return reduction;
 	}
 
@@ -1417,7 +1417,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return nd4j::math::nd4j_sqrt<T>(reduction);
 	}
 
@@ -1502,7 +1502,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		return nd4j::math::nd4j_max<T>(nd4j::math::nd4j_abs<T>(reduction),
 				nd4j::math::nd4j_abs<T>(reduction));
 	}
@@ -1587,7 +1587,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		T bias = extraParams[1];
 		return (reduction - (nd4j::math::nd4j_pow<T>(bias, 2.0) / (T) n))
 				/ (T) (n - 1.0);
@@ -1623,7 +1623,7 @@ public:
 
 
 #endif
-	T postProcess(T reduction, int n,T *extraParams) override {
+	T postProcess(T reduction, Nd4jIndex n,T *extraParams) override {
 		T ret = Variance<T>::postProcess(reduction,n,extraParams);
 		T sqrtRet = nd4j::math::nd4j_sqrt<T>(ret);
 		return sqrtRet;

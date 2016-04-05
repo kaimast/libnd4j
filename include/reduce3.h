@@ -45,7 +45,7 @@ namespace functions {
             __host__  __device__
 
 #endif
-            inline T postProcess(T reduction, int n,T **extraParamsRef) = 0;
+            inline T postProcess(T reduction, Nd4jIndex n,T **extraParamsRef) = 0;
 
             virtual
 #ifdef __CUDACC__
@@ -175,7 +175,7 @@ namespace functions {
                     T *result,
                     int *resultShapeInfo,
                     int postProcessOrNot) {
-                int n = shape::length(xShapeInfo);
+                Nd4jIndex n = shape::length(xShapeInfo);
                 int rank = shape::rank(xShapeInfo);
                 //shared memory space for storing intermediate results
                 SharedMemory <T> val;
@@ -190,7 +190,7 @@ namespace functions {
 
 
 #pragma unroll
-                for(unsigned int i = blockIdx.x * gridDim.x + threadIdx.x;i < n; i += gridDim.x * blockDim.x) {
+                for(Nd4jIndex i = blockIdx.x * gridDim.x + threadIdx.x;i < n; i += gridDim.x * blockDim.x) {
                     int *idx = shape::ind2sub(rank,shape::shapeOf(xShapeInfo),i);
                     int offset = shape::getOffset(0,shape::shapeOf(xShapeInfo),shape::stride(xShapeInfo),idx,rank);
                     int yOffset = shape::getOffset(0,shape::shapeOf(yShapeInfo),shape::stride(yShapeInfo),idx,rank);
@@ -277,9 +277,9 @@ namespace functions {
                 //ending index for tad
                 __shared__ volatile int endingOffset;
                 //length for the tad
-                __shared__ volatile int xLength;
+                __shared__ volatile Nd4jIndex xLength;
 
-                __shared__ volatile int resultLength;
+                __shared__ volatile Nd4jIndex resultLength;
 
 
                 __shared__ int elementsPerTad;
@@ -308,7 +308,7 @@ namespace functions {
                     xLength = shape::length(xShapeInfo);
 
 
-                    resultLength = shape::prod(shape::shapeOf(resultShapeInfo), shape::rank(resultShapeInfo));
+                    resultLength = shape::prodLong(shape::shapeOf(resultShapeInfo), shape::rank(resultShapeInfo));
                     xElementWiseStride = shape::elementWiseStride(xShapeInfo);
                     elementsPerTad = xLength / resultLength;
 
@@ -326,7 +326,7 @@ namespace functions {
                 T curr, currY;
 
                 if(!resultScalar && dimensionLength > 1) {
-                    int resultLength = shape::length(resultShapeInfo);
+                    Nd4jIndex resultLength = shape::length(resultShapeInfo);
 
                     if(tid == 0) {
                         xTadInfo = shape::tadInfo(xShapeInfo, dimension, dimensionLength);
@@ -356,10 +356,10 @@ namespace functions {
                     int tadElementWiseStride = shape::stride(xShapeInfo)[dimensionLength - 1];
                     int elementsPerReductionIndex = shape::length(xShapeInfo) / resultLength;
                     int tadLength = xTadInfo.tensorShapeProd;
-                    int xLength = shape::length(xShapeInfo);
+                    Nd4jIndex xLength = shape::length(xShapeInfo);
 
 #pragma unroll
-                    for(int i = tid; i < resultLength; i+= gridDim.x * blockDim.x) {
+                    for(Nd4jIndex i = tid; i < resultLength; i+= gridDim.x * blockDim.x) {
                         if(this->extraParamsLength() > 0) {
                             for(int k = 0; k < this->extraParamsLength(); k++) {
                                 localExtraParams[k] = this->startingValue(dx);
@@ -392,10 +392,10 @@ namespace functions {
                 else if (resultScalar) {
                     if(blockIdx.x >= resultLength)
                         return;
-                    unsigned int i = blockIdx.x * xElementWiseStride + tid;
-                    unsigned int j = blockIdx.x * yElementWiseStride + tid;
-                    unsigned int gridSize = blockDim.x * gridDim.x * xElementWiseStride;
-                    unsigned int gridSizeY = blockDim.x * gridDim.x * yElementWiseStride;
+                    Nd4jIndex i = blockIdx.x * xElementWiseStride + tid;
+                    Nd4jIndex j = blockIdx.x * yElementWiseStride + tid;
+                    Nd4jIndex gridSize = blockDim.x * gridDim.x * xElementWiseStride;
+                    Nd4jIndex gridSizeY = blockDim.x * gridDim.x * yElementWiseStride;
                     if(tid == 0) {
                         newExtraParams = this->extraParamsLength() > 0 ? (T *) malloc(sizeof(T) * this->extraParamsLength() * resultLength) : extraParams;
                         for(int i = 0; i < this->extraParamsLength(); i++) {
@@ -404,7 +404,7 @@ namespace functions {
                     }
 
                     __syncthreads();
-                    int n = shape::length(xShapeInfo);
+                    Nd4jIndex n = shape::length(xShapeInfo);
 
                     if(xElementWiseStride == 1 && yElementWiseStride == 1) {
 #pragma unroll
@@ -610,7 +610,7 @@ namespace functions {
 
 
                 T startingVal = this->startingValue(x);
-                int length = shape::length(xShapeInfo);
+                Nd4jIndex length = shape::length(xShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
                 int yElementWiseStride = shape::elementWiseStride(yShapeInfo);
 #pragma omp parallel for
@@ -623,7 +623,7 @@ namespace functions {
                 if(xOrder == yOrder) {
                     if (xElementWiseStride == 1) {
 #pragma omp parallel for shared(extraParamsVals)
-                        for(int i = 0; i < length; i++) {
+                        for(Nd4jIndex i = 0; i < length; i++) {
 #pragma omp critical
                             {
                                 startingVal = update(startingVal,op(x[i],y[i],&extraParamsVals),&extraParamsVals);
@@ -637,7 +637,7 @@ namespace functions {
 
                     else {
 #pragma omp parallel for shared(extraParamsVals)
-                        for(int i = 0; i < length; i++) {
+                        for(Nd4jIndex i = 0; i < length; i++) {
 #pragma omp critical
                             {
                                 startingVal = update(startingVal,op(x[i * xElementWiseStride],y[i * yElementWiseStride],&extraParamsVals),&extraParamsVals);
@@ -656,7 +656,7 @@ namespace functions {
                     int *xStride = shape::stride(xShapeInfo);
                     int *yStride = shape::stride(yShapeInfo);
                     T startingVal = this->startingValue(x);
-                    int n = shape::length(xShapeInfo);
+                    Nd4jIndex n = shape::length(xShapeInfo);
                     int shapeIter[MAX_RANK];
                     int coord[MAX_RANK];
                     int dim;
@@ -777,13 +777,13 @@ namespace functions {
                                                  &y,
                                                  yStridesIter) >= 0) {
 
-                        int resultLength = shape::length(resultShapeInfoBuffer);
+                        Nd4jIndex resultLength = shape::length(resultShapeInfoBuffer);
                         int tadLength = shape::tadLength(xShapeInfo,dimension,dimensionLength);
                         ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
                                 /* Process the innermost dimension */
                                 T *xIter = x;
                                 T *yIter = y;
-                                int xOffset = shape::getOffset(0,xShape,xStride,coord,rank);
+                                Nd4jIndex xOffset = shape::getOffset(0,xShape,xStride,coord,rank);
                                 int reductionIndex = xOffset / resultLength;
                                 result[reductionIndex] = update(result[reductionIndex],op(xIter[0],yIter[0],&extraParamsVals),&extraParamsVals);
                             } ND4J_RAW_ITER_TWO_NEXT(dim,
@@ -795,7 +795,7 @@ namespace functions {
                                                      y,
                                                      yStridesIter);
 #pragma  omp parallel for
-                        for(int i = 0; i < resultLength ;i++) {
+                        for(Nd4jIndex i = 0; i < resultLength ;i++) {
                             result[i] = postProcess(result[i],tadLength,&extraParamsVals);
                         }
 
@@ -809,7 +809,7 @@ namespace functions {
                     T startingVal = this->startingValue(x);
 
                     shape::TADPermuteInfo tadPermuteInfo = shape::tadInfo(xShapeInfo,dimension, dimensionLength);
-                    int resultLength = shape::length(resultShapeInfoBuffer);
+                    Nd4jIndex resultLength = shape::length(resultShapeInfoBuffer);
                     /**
                      * The element wise stride belong longs to a reduction index.
                      * When used out of order, we can get rid of the data
@@ -823,7 +823,7 @@ namespace functions {
                     int elementsPerReductionIndex = shape::length(xShapeInfo) / resultLength;
                     int tadLength = tadPermuteInfo.tensorShapeProd;
 #pragma omp parallel for
-                    for(int i = 0; i < resultLength; i++) {
+                    for(Nd4jIndex i = 0; i < resultLength; i++) {
                         T *localExtraParams = this->extraParamsLength() > 0 ? (T *) malloc(sizeof(T) * this->extraParamsLength()) : NULL;
                         for(int extraParamsIdx = 0; extraParamsIdx < this->extraParamsLength(); extraParamsIdx++) {
                             localExtraParams[extraParamsIdx] = startingVal;
@@ -901,7 +901,7 @@ namespace functions {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                inline T postProcess(T reduction, int n,T **extraParamsRef) {
+                inline T postProcess(T reduction, Nd4jIndex n,T **extraParamsRef) {
                     T *extraParams = *extraParamsRef;
                     return reduction / (nd4j::math::nd4j_sqrt<T>(extraParams[0]) * nd4j::math::nd4j_sqrt<T>(extraParams[1]));
                 }
@@ -1039,7 +1039,7 @@ namespace functions {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                inline T postProcess(T reduction, int n,T **extraParamsRef) {
+                inline T postProcess(T reduction, Nd4jIndex n,T **extraParamsRef) {
                     return reduction;
                 }
                 /**
@@ -1164,7 +1164,7 @@ namespace functions {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                inline T postProcess(T reduction, int n,T **extraParamsRef) {
+                inline T postProcess(T reduction, Nd4jIndex n,T **extraParamsRef) {
                     return nd4j::math::nd4j_sqrt<T>(reduction);
                 }
                 /**
@@ -1289,7 +1289,7 @@ namespace functions {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                inline T postProcess(T reduction, int n,T **extraParamsRef) {
+                inline T postProcess(T reduction, Nd4jIndex n,T **extraParamsRef) {
                     return reduction;
                 }
                 /**

@@ -91,10 +91,10 @@ namespace functions {
 			T *params,
 			T *result,
 			int *indexes) {
-		int n = shape::length(shapeInfo);
+		Nd4jIndex n = shape::length(shapeInfo);
 		int totalThreads = gridDim.x * blockDim.x;
 		int tid = threadIdx.x;
-		int i = blockIdx.x * blockDim.x + tid;
+		Nd4jIndex i = blockIdx.x * blockDim.x + tid;
 
 		/* equal, positive, non-unit increments. */
 #pragma unroll
@@ -130,7 +130,7 @@ namespace functions {
 		int *xStride = shape::stride(shapeInfo);
 		char xOrder = shape::order(shapeInfo);
 		char resultOrder = shape::order(resultShapeInfo);
-		int n = shape::length(shapeInfo);
+		Nd4jIndex n = shape::length(shapeInfo);
 		int xRank = shape::rank(shapeInfo);
 		int xOffset = shape::offset(shapeInfo);
 
@@ -138,7 +138,7 @@ namespace functions {
 		int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
 		int totalThreads = gridDim.x * blockDim.x;
 		int tid = threadIdx.x;
-		int i = blockIdx.x * blockDim.x + tid;
+		Nd4jIndex i = blockIdx.x * blockDim.x + tid;
 		__shared__ int length;
 		if(tid == 0)
 			length = shape::length(shapeInfo);
@@ -180,7 +180,7 @@ namespace functions {
 	 * @param n
 	 */
 	virtual  __inline__ __device__ void transformCuda(
-			int n,
+			Nd4jIndex n,
 			T *dy,
 			int incy,
 			T *params,
@@ -188,7 +188,7 @@ namespace functions {
 			int resultStride) {
 		int totalThreads = gridDim.x * blockDim.x;
 		int tid = threadIdx.x;
-		int i = blockIdx.x * blockDim.x + tid;
+		Nd4jIndex i = blockIdx.x * blockDim.x + tid;
 
 		if(incy == 1 && resultStride == 1) {
 			/* equal, positive, non-unit increments. */
@@ -226,9 +226,9 @@ namespace functions {
                     int *resultShapeInfo,
                     T *extraParams,
                     int *indexes) {
-                int n = shape::length(xShapeInfo);
+                Nd4jIndex n = shape::length(xShapeInfo);
 #pragma simd
-                for (int i = 0; i < n; i++) {
+                for (Nd4jIndex i = 0; i < n; i++) {
                     result[indexes[i]] = op(dx[indexes[i]], extraParams);
                 }
             }
@@ -251,9 +251,9 @@ namespace functions {
                     T *extraParams,
                     int *indexes,
                     int *resultIndexes) {
-                int n = shape::length(xShapeInfo);
+                Nd4jIndex n = shape::length(xShapeInfo);
 #pragma omp parallel for
-                for (int i = 0; i < n; i++) {
+                for (Nd4jIndex i = 0; i < n; i++) {
                     result[resultIndexes[i]] = op(dx[indexes[i]], extraParams);
                 }
             }
@@ -281,7 +281,7 @@ namespace functions {
                     return;
                 }
 
-                int n = shape::length(xShapeInfo);
+                Nd4jIndex n = shape::length(xShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
                 int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
                 if(xElementWiseStride >= 1 && resultElementWiseStride >= 1 && shape::order(xShapeInfo) == shape::order(resultShapeInfo)) {
@@ -347,17 +347,17 @@ namespace functions {
                               T *result,
                               int resultStride,
                               T *extraParams,
-                              int n) {
+                              Nd4jIndex n) {
                 if (xStride == 1 && resultStride == 1) {
                     if(n < 8000) {
 #pragma simd 
-                        for (int i = 0; i < n; i++) {
+                        for (Nd4jIndex i = 0; i < n; i++) {
                             result[i] = op(dx[i], extraParams);
                         }
                     }
                     else {
 #pragma omp parallel  for
-                        for (int i = 0; i < n; i++) {
+                        for (Nd4jIndex i = 0; i < n; i++) {
                             result[i] = op(dx[i], extraParams);
                         }
                     }
@@ -367,14 +367,14 @@ namespace functions {
 
                 else {
                     if(n < 8000) {
-                        for (int i = 0; i < n; i++) {
+                        for (Nd4jIndex i = 0; i < n; i++) {
                             result[i * resultStride] = op(dx[i * xStride],
                                                           extraParams);
                         }
                     }
                     else {
 #pragma omp parallel for
-                        for (int i = 0; i < n; i++) {
+                        for (Nd4jIndex i = 0; i < n; i++) {
                             result[i * resultStride] = op(dx[i * xStride],
                                                           extraParams);
                         }
@@ -4679,7 +4679,7 @@ namespace functions {
 template <typename T>
 __device__ void transformGeneric(
 		int opNum,
-		int n,
+		Nd4jIndex n,
 		T *dy,
 		int incy,
 		T *params,
@@ -4725,7 +4725,7 @@ __device__ void transformGeneric(
  */
 __global__ void transformDouble(
 		int opNum,
-		int n,
+		Nd4jIndex n,
 		double *dy,
 		int incy,
 		double *params,
@@ -4756,7 +4756,7 @@ __global__ void transformDouble(
  */
 __global__ void transformFloat(
 		int opNum,
-		int n,
+		Nd4jIndex n,
 		float *dy,
 		int incy,
 		float *params,

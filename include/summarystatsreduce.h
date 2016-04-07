@@ -1007,7 +1007,6 @@ struct SharedSummaryStatsData<double> {
                 if (dimensionLength > 1) {
                     int numOnes = 0;
                     int *shape = shape::shapeOf(xShapeInfo);
-                    int *stride = shape::stride(xShapeInfo);
                     int wholeRank = shape::rank(xShapeInfo);
                     bool squeezed = false;
                     bool newSqueezeDimensions = false;
@@ -1043,7 +1042,6 @@ struct SharedSummaryStatsData<double> {
                     int *xShape = shape::shapeOf(tadShapeShapeInfo);
                     int *xStride = shape::stride(tadShapeShapeInfo);
                     int rank = shape::rank(tadShapeShapeInfo);
-                    int tadLength = shape::length(tadShapeShapeInfo);
 #pragma omp  parallel  for
                     for (int i = 0; i < resultLength; i++) {
                         int offset = shape::tadOffset(i,xShapeInfo,dimension,dimensionLength);

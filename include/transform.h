@@ -3363,9 +3363,6 @@ public:
 		int strideY = (int) extraParams[1];
 		int padWidth = (int) extraParams[2];
 		int padHeight = (int) extraParams[3];
-		int imgHeight = (int) extraParams[4];
-		int imgWidth = (int) extraParams[5];
-
 
 		int exampleFrom = 0;
 		int exampleTo = inShape[0];
@@ -4553,7 +4550,7 @@ public:
 			T *result,
 			int *resultShapeBuffer,
 			T *extraParams) {
-		if(extraParams == NULL || extraParams[0] == 0 || extraParams[0] == 1 && extraParams[1] == shape::MAX_DIMENSION) {
+                if(extraParams == NULL || extraParams[0] == 0 || (extraParams[0] == 1 && extraParams[1] == shape::MAX_DIMENSION)) {
 			this->doAll(dx,xShapeBuffer,result,resultShapeBuffer,extraParams);
 		}
 		else {

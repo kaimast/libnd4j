@@ -110,7 +110,6 @@ void   NativeOps::execBroadcastDouble(Nd4jPointer *extraPointers,int opNum,
     double *yPointer = reinterpret_cast<double *>(y);
     int *yShapeInfoPointer = reinterpret_cast<int *>(yShapeInfo);
     double *resultPointer = reinterpret_cast<double *>(result);
-    int *resultShapeInfoPointer = reinterpret_cast<int *>(resultShapeInfo);
     int *dimensionPointer = reinterpret_cast<int *>(dimension);
     DoubleNativeOpExecutioner::getInstance()->execBroadcast(
             opNum,
@@ -119,7 +118,6 @@ void   NativeOps::execBroadcastDouble(Nd4jPointer *extraPointers,int opNum,
             yPointer,
             yShapeInfoPointer,
             resultPointer,
-            resultShapeInfoPointer,
             dimensionPointer,
             dimensionLength);
 
@@ -766,16 +764,14 @@ void   NativeOps::execBroadcastFloat(Nd4jPointer *extraPointers,int opNum,
                                      Nd4jPointer y,
                                      Nd4jPointer yShapeInfo,
                                      Nd4jPointer result,
-                                     Nd4jPointer resultShapeInfo,
                                      Nd4jPointer dimension, int dimensionLength) {
     float *xPointer = reinterpret_cast<float *>(x);
     int *xShapeInfoPointer = reinterpret_cast<int *>(xShapeInfo);
     float *yPointer = reinterpret_cast<float *>(y);
     int *yShapeInfoPointer = reinterpret_cast<int *>(yShapeInfo);
     float *resultPointer = reinterpret_cast<float *>(result);
-    int *resultShapeInfoPointer = reinterpret_cast<int *>(resultShapeInfo);
     int *dimensionPointer = reinterpret_cast<int *>(dimension);
-    FloatNativeOpExecutioner::getInstance()->execBroadcast(opNum,xPointer,xShapeInfoPointer,yPointer,yShapeInfoPointer,resultPointer,resultShapeInfoPointer,dimensionPointer,dimensionLength);
+    FloatNativeOpExecutioner::getInstance()->execBroadcast(opNum,xPointer,xShapeInfoPointer,yPointer,yShapeInfoPointer,resultPointer,dimensionPointer,dimensionLength);
 
 }
 

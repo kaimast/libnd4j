@@ -47,7 +47,6 @@ TEST(PairWiseUtil,IterationOne) {
     int shapeIter[MAX_RANK];
     int coord[MAX_RANK];
     int dim;
-    int srcStridesIter[MAX_RANK];
     int dstStridesIter[MAX_RANK];
     int shape[2] = {2,2};
     int strides[2] = {2,1};
@@ -106,11 +105,9 @@ TEST(PairWiseUtil,DifferentOrderCopy) {
 
 TEST(PairWiseUtil,PairWiseUtilEuclideanDistance) {
     int shapeArr[2] = {2,2};
-    int xStrides[2] = {2,1};
-    int yStrides[2] = {1,2};
-    int *resultStrides = xStrides;
     int rank = 2;
     int length = 4;
+
     double *data = (double *) malloc(sizeof(double) * length);
     for(int i = 0; i < length; i++)
         data[i] = i + 1;
@@ -134,9 +131,6 @@ TEST(PairWiseUtil,PairWiseUtilEuclideanDistance) {
 
 TEST(PairWiseUtil,PairWiseUtilEuclideanDistanceDimension) {
     int shapeArr[2] = {2,2};
-    int xStrides[2] = {2,1};
-    int yStrides[2] = {1,2};
-    int *resultStrides = xStrides;
     int rank = 2;
     int length = 4;
     double *data = (double *) malloc(sizeof(double) * length);
@@ -147,7 +141,6 @@ TEST(PairWiseUtil,PairWiseUtilEuclideanDistanceDimension) {
         yData[i] = i + 1;
     }
 
-    double assertion = 1.4142135623730951;
 
     using namespace functions::reduce3;
     Reduce3<double> *op  = new functions::reduce3::ops::EuclideanDistance<double>();

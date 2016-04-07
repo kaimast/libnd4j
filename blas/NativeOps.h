@@ -466,7 +466,6 @@ class ND4J_EXPORT NativeOps {
         Nd4jPointer y,
         Nd4jPointer yShapeInfo,
         Nd4jPointer result,
-        Nd4jPointer resultShapeInfo,
         Nd4jPointer dimension, int dimensionLength);
 
 

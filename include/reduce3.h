@@ -895,15 +895,15 @@ for(int i = 0; i < length; i++) {
 						coord,
 						shapeIter,
 						x,
-						xStridesIter,
-						y,
-						yStridesIter);
-#pragma  omp parallel for
-for(int i = 0; i < resultLength ;i++) {
-	result[i] = postProcess(result[i],tadLength,&extraParamsVals);
-}
+                                                         xStridesIter,
+                                                         y,
+                                                         yStridesIter);
+//#pragma  omp parallel for
+                                for(int i = 0; i < resultLength ;i++) {
+                                    result[i] = postProcess(result[i],tadLength,&extraParamsVals);
+                                }
 
-			}
+                        }
 			else {
 				printf("Unable to prepare array\n");
 			}
@@ -926,7 +926,8 @@ for(int i = 0; i < resultLength ;i++) {
 			int tadElementWiseStride = dimensionLength > 1 ? shape::stride(xShapeInfo)[dimensionLength - 1] : shape::computeElementWiseStride(shape::rank(xShapeInfo),shape::shapeOf(xShapeInfo),shape::stride(xShapeInfo),shape::order(xShapeInfo) == 'f',dimension,dimensionLength);
 			int elementsPerReductionIndex = shape::length(xShapeInfo) / resultLength;
 			int tadLength = tadPermuteInfo.tensorShapeProd;
-#pragma omp parallel for
+
+//#pragma omp pariallel for
 			for(int i = 0; i < resultLength; i++) {
 				T *localExtraParams = this->extraParamsLength() > 0 ? (T *) malloc(sizeof(T) * this->extraParamsLength()) : NULL;
 				for(int extraParamsIdx = 0; extraParamsIdx < this->extraParamsLength(); extraParamsIdx++) {

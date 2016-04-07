@@ -151,7 +151,7 @@ void quickSort(StridePermutation *arr, int elements);
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-void  SortStrideArray(int ndim, int *strides,
+inline void  SortStrideArray(int ndim, int *strides,
                       StridePermutation *out_strideperm) {
 
     /* Set up the strideperm values */
@@ -185,7 +185,7 @@ template <typename T>
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-int PrepareOneRawArrayIter(int ndim, int *shape,
+inline int PrepareOneRawArrayIter(int ndim, int *shape,
                            T *data, int *strides,
                            int *out_ndim, int *outShape,
                            T **out_data, int *outStrides) {
@@ -349,7 +349,7 @@ class CudaBlockInformation {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-void quickSort(StridePermutation *arr, int elements) {
+inline void quickSort(StridePermutation *arr, int elements) {
 #define  MAX_LEVELS  300
 
     int  beg[MAX_LEVELS], end[MAX_LEVELS], i= 0, L, R, swap ;

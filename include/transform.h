@@ -14,6 +14,7 @@
 #include <pairwise_util.h>
 #include <dll.h>
 #include "reduce.h"
+#include "scalar.h"
 #include "broadcasting.h"
 #include <shape.h>
 #ifdef __CUDACC__
@@ -3567,61 +3568,97 @@ public:
 			int *resultShapeBuffer,
 			T *extraParams) {
 
+// TODO: this kernel might use block-wise multireduce too
+		if (blockIdx.x > 0)
+			return;
+
+
+
+
+		int *shape = shape::shapeOf(xShapeBuffer);
+		__shared__ T *maxResult;
+		__shared__ int *maxResultShapeBuffer;
 		__shared__ functions::reduce::ops::Max<T> *max;
 		__shared__ functions::transform::ops::Exp<T> *exp;
 		__shared__ functions::broadcast::ops::Subtract<T> *sub;
+		__shared__ functions::scalar::ops::Subtract<T> *scalarSub;
+		__shared__ functions::scalar::ops::Divide<T> *scalarDiv;
 		__shared__ functions::broadcast::ops::Divide<T> *div;
 		__shared__ functions::reduce::ops::Sum<T> *sum;
-		__shared__ T *maxResult;
+
+		int length = shape::length(xShapeBuffer);
+
 		if(threadIdx.x == 0) {
 			max = new functions::reduce::ops::Max<T>();
 			exp = new functions::transform::ops::Exp<T>();
 			sub = new functions::broadcast::ops::Subtract<T>();
 			div = new functions::broadcast::ops::Divide<T>();
 			sum = new functions::reduce::ops::Sum<T>();
+			if (shape::isVector(xShapeBuffer)) {
+				scalarSub = new functions::scalar::ops::Subtract<T>();
+				scalarDiv = new functions::scalar::ops::Divide<T>();
+			}
 			maxResult = (T *) malloc(sizeof(T) * shape[0]);
-			for (int i = 0; i < shape[0]; i++)
-				maxResult[i] = 0.0;
-
 		}
-		int *shape = shape::shapeOf(xShapeBuffer);
+		__syncthreads();
+
 		int *stride = shape::stride(xShapeBuffer);
 		//iterate along rows
 		int dimension[1] = {0};
 		int maxDimension[1] = {1};
 		//compute the row wise maxes
-		for (int i = 0; i < shape[0]; i++)
-			maxResult[i] = 0.0;
+
 		int maxShape[2] = {shape[0], 1};
-		int *maxResultShapeBuffer = shape::shapeBuffer(2, maxShape);
+
+		if (threadIdx.x == 0)
+			maxResultShapeBuffer = shape::shapeBuffer(2, maxShape);
+//		int *maxResultShapeBuffer = shape::shapeBuffer(2, maxShape);
+
+		if (threadIdx.x < shape[0])
+			maxResult[threadIdx.x] = 0.0;
+		__syncthreads();
+
 		max->transformCuda(dx, xShapeBuffer, extraParams, maxResult, maxResultShapeBuffer, maxDimension, 1,1);
 		__syncthreads();
+
 		//subtract max of each row
-		sub->transformCuda(result, resultShapeBuffer, maxResult, maxResultShapeBuffer, result, resultShapeBuffer,
-				dimension, 1);
+		if (shape::isVector(xShapeBuffer)) {
+			scalarSub->transformCuda(maxResult[0], result, resultShapeBuffer, extraParams, result, resultShapeBuffer );
+		} else {
+			sub->transformCuda(result, resultShapeBuffer, maxResult, maxResultShapeBuffer, result, resultShapeBuffer, dimension, 1);
+		}
+		__syncthreads();
+
 
 		//after subtracting the row wise maxes take the exp
 		exp->transformCuda(result, resultShapeBuffer, extraParams,result, resultShapeBuffer);
+		__syncthreads();
 
 		//take the sum for the exponential
 		sum->transformCuda(result, resultShapeBuffer, extraParams, maxResult, maxResultShapeBuffer, maxDimension,1,1);
+		__syncthreads();
 
 		//divide by the sum
-		div->transformCuda(result, resultShapeBuffer, maxResult, maxResultShapeBuffer, result, resultShapeBuffer,
-				dimension, 1);
-
+		if (shape::isVector(xShapeBuffer)) {
+			scalarDiv->transformCuda(maxResult[0], result, resultShapeBuffer, extraParams, result, resultShapeBuffer );
+		} else {
+			div->transformCuda(result, resultShapeBuffer, maxResult, maxResultShapeBuffer, result, resultShapeBuffer, dimension, 1);
+		}
+		__syncthreads();
 		if(threadIdx.x == 0) {
 			delete exp;
 			delete sub;
 			delete sum;
 			delete max;
 			delete div;
+			if (shape::isVector(xShapeBuffer)) {
+				delete scalarDiv;
+				delete scalarSub;
+			}
 			free(maxResult);
 
-			delete[] maxResultShapeBuffer;
+			free(maxResultShapeBuffer);
 		}
-
-
 	}
 #endif
 
@@ -3855,6 +3892,7 @@ public:
 				dimension, 1);
 		log->transformCuda(result, resultShapeBuffer, extraParams,result, resultShapeBuffer);
 
+		__syncthreads();
 		if(threadIdx.x == 0) {
 			delete exp;
 			delete sub;
@@ -4815,9 +4853,11 @@ __device__ void transformGeneric(
 
 
 	op->transformCuda(n,dy,incy,params,result,resultStride);
+
+	__syncthreads();
 	if(threadIdx.x == 0) {
-		free(op);
-		free(doubleTransformFactory);
+		delete op;
+		delete doubleTransformFactory;
 	}
 }
 
@@ -4922,9 +4962,11 @@ __device__ void transformGeneric(
 
 
 	op->transformCuda(dy,shapeInfo,params,result,resultShapeInfo);
+
+	__syncthreads();
 	if(threadIdx.x == 0) {
-		free(op);
-		free(doubleTransformFactory);
+		delete op;
+		delete doubleTransformFactory;
 	}
 }
 
@@ -5029,9 +5071,11 @@ __device__ void transformGenericIndexes(
 
 
 	op->transformCuda(dy,shapeInfo,params,result,indexes);
+
+	__syncthreads();
 	if(threadIdx.x == 0) {
-		free(op);
-		free(doubleTransformFactory);
+		delete op;
+		delete doubleTransformFactory;
 	}
 }
 

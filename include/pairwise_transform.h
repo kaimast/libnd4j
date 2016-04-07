@@ -466,22 +466,11 @@ public:
 
 		else if (sameShape) {
 			int rank = shape::rank(xShapeBuffer);
-			int *xShape = shape::shapeOf(xShapeBuffer);
-			int *yShape = shape::shapeOf(yShapeBuffer);
-			int *resultShape = shape::shapeOf(resultShapeBuffer);
+                        int *xShape = shape::shapeOf(xShapeBuffer);
 
 			int *xStride = shape::stride(xShapeBuffer);
 			int *yStride = shape::stride(yShapeBuffer);
-			int *resultStride = shape::stride(resultShapeBuffer);
-
-			int xRank = shape::rank(xShapeBuffer);
-			int yRank = shape::rank(yShapeBuffer);
-			int resultRank = shape::rank(resultShapeBuffer);
-
-
-			char xOrder = shape::order(xShapeBuffer);
-			char yOrder = shape::order(yShapeBuffer);
-			char resultOrder = shape::order(resultShapeBuffer);
+                        int *resultStride = shape::stride(resultShapeBuffer);
 
 			int shapeIter[MAX_RANK];
 			int coord[MAX_RANK];
@@ -530,10 +519,7 @@ public:
 
 		}
 
-		else {
-			char xOrder = shape::order(xShapeBuffer);
-			char yOrder = shape::order(yShapeBuffer);
-			char resultOrder = shape::order(resultShapeBuffer);
+                else {
 			int len = shape::length(xShapeBuffer);
 			int xRank = shape::rank(xShapeBuffer);
 			int yRank = shape::rank(yShapeBuffer);
@@ -548,8 +534,7 @@ public:
 			int *yShape = shape::shapeOf(yShapeBuffer);
 			int *yStride = shape::stride(yShapeBuffer);
 
-			int *resultShape = shape::shapeOf(resultShapeBuffer);
-			int *resultStride = shape::stride(resultShapeBuffer);
+                        int *resultShape = shape::shapeOf(resultShapeBuffer);
 			if(dx == result) {
 				for (int i = 0; i < len; i++) {
 					shape::ind2subC(xRank,xShape, i, &xCoord);

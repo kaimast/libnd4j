@@ -91,19 +91,18 @@ public:
 
 	virtual void execCpuKernel() override {
 		int *shapeBuff = shapeBuffer(this->rank,this->baseData->xShape);
-		int *yShapeBuff = shapeBuffer(this->yRank,this->baseData->yShape);
-		int *resultShapeBuff = shapeBuffer(this->baseData->resultRank,this->baseData->resultShape);
+                int *yShapeBuff = shapeBuffer(this->yRank,this->baseData->yShape);
+
 		op->exec(this->data->data->data,
 				shapeBuff,
 				this->baseData->y,
 				yShapeBuff,
-				this->baseData->result,
-				resultShapeBuff,
+                                this->baseData->result,
 				this->baseData->dimension,
 				this->baseData->dimensionLength);
+
 		free(shapeBuff);
-		free(yShapeBuff);
-		free(resultShapeBuff);
+                free(yShapeBuff);
 	}
 
 

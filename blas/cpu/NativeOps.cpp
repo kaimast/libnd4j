@@ -1390,9 +1390,7 @@ void flattenGeneric(int offset,
     int *inputShapeInfoPointer = reinterpret_cast<int *>(inputShapeInfo);
     int numOnes = 0;
     int *shape = shape::shapeOf(inputShapeInfoPointer);
-    int *stride = shape::stride(inputShapeInfoPointer);
     int wholeRank = shape::rank(inputShapeInfoPointer);
-    bool squeezed = false;
     for(int i = 0; i < wholeRank; i++) {
         if(shape[i] == 1)
             numOnes++;
@@ -1403,11 +1401,6 @@ void flattenGeneric(int offset,
     //start at the given offset
     resultPointer += offset;
     char inputOrder = shape::order(inputShapeInfoPointer);
-    int rank = shape::rank(inputShapeInfoPointer);
-    int *coord = (int *) malloc(sizeof(int) * rank);
-    int *xShape = shape::shapeOf(inputShapeInfoPointer);
-    int *xStride = shape::stride(inputShapeInfoPointer);
-    char resultOrder = shape::order(inputShapeInfoPointer);
     int len = shape::length(inputShapeInfoPointer);
     int resultEleStride = shape::elementWiseStride(resultShapeInfoBufferPointer);
     int inputEleStride = shape::elementWiseStride(inputShapeInfoPointer);
@@ -1429,10 +1422,9 @@ void flattenGeneric(int offset,
             }
         }
         else {
-            char inputOrder = shape::order(inputShapeInfoPointer);
             int idx = 0;
             int rank = shape::rank(inputShapeInfoPointer);
-            int *coord = (int *) malloc(sizeof(int) * rank);
+            int *coord = new int[rank];
             int *xShape = shape::shapeOf(inputShapeInfoPointer);
             int *xStride = shape::stride(inputShapeInfoPointer);
             int len = shape::length(inputShapeInfoPointer);
@@ -1456,10 +1448,9 @@ void flattenGeneric(int offset,
         }
     }
     else {
-        char inputOrder = shape::order(inputShapeInfoPointer);
         int idx = 0;
         int rank = shape::rank(inputShapeInfoPointer);
-        int *coord = (int *) malloc(sizeof(int) * rank);
+        int *coord = new int[rank];
         int *xShape = shape::shapeOf(inputShapeInfoPointer);
         int *xStride = shape::stride(inputShapeInfoPointer);
         int len = shape::length(inputShapeInfoPointer);
@@ -1547,7 +1538,7 @@ void NativeOps::initializeDevicesAndFunctions() {
        */
 Nd4jPointer NativeOps::mallocHost(long memorySize, int flags) {
     Nd4jPointer pointer = (Nd4jPointer) malloc(memorySize);
-    if (pointer == NULL)
+    if (pointer == 0)
         return 0L;
     return pointer;
 }

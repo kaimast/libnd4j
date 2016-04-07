@@ -75,10 +75,7 @@ TEST(PairWiseUtil,IterationOne) {
 
 TEST(PairWiseUtil,DifferentOrderCopy) {
     int shape[3] = {2,2,2};
-    int xStrides[3] = {4,2,1};
-    int yStrides[3] = {1,2,4};
-    int *resultStrides = xStrides;
-    int rank = 3;
+
     double *data = (double *) malloc(sizeof(double) * 8);
     for(int i = 0; i < 8; i++)
         data[i] = i + 1;
@@ -96,7 +93,9 @@ TEST(PairWiseUtil,DifferentOrderCopy) {
     PairWiseTransform<double> *op  = new ops::Copy<double>();
     int *xShapeBuffer = shape::shapeBuffer(3,shape);
     int *yShapeBuffer = shape::shapeBuffer(3,shape);
-    op->exec(data,xShapeBuffer,yData,yShapeBuffer,resultData,xShapeBuffer,NULL,8);
+    int indexes[] = {8};
+
+    op->exec(data,xShapeBuffer,yData,yShapeBuffer,resultData,xShapeBuffer,NULL, indexes);
     for(int i = 0; i < 8; i++) {
         CHECK_EQUAL(resultData[i],yData[i]);
     }

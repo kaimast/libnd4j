@@ -225,7 +225,7 @@ public:
 			T *result,
 			int *resultShapeInfo,
 			T *extraParams,
-			int *indexes) {
+                        const int *indexes) {
 		int n = shape::length(xShapeInfo);
 #pragma simd
 		for (int i = 0; i < n; i++) {
@@ -249,8 +249,8 @@ public:
 			T *result,
 			int *resultShapeInfo,
 			T *extraParams,
-			int *indexes,
-			int *resultIndexes) {
+                        const int *indexes,
+                        const int *resultIndexes) {
 		int n = shape::length(xShapeInfo);
 #pragma omp parallel for
 		for (int i = 0; i < n; i++) {
@@ -3646,8 +3646,8 @@ public:
 			int *resultShapeBuffer,
 			T *extraParams) {
 		if (shape::isMatrix(xShapeBuffer)) {
-			int *shape = shape::shapeOf(xShapeBuffer);
-			int *stride = shape::stride(xShapeBuffer);
+                        int *shape = shape::shapeOf(xShapeBuffer);
+
 			//iterate along rows
 			int dimension[1] = {0};
 			int maxDimension[1] = {1};
@@ -3662,8 +3662,7 @@ public:
 
 			//subtract max of each row
 			functions::broadcast::ops::Subtract<T> *sub = new functions::broadcast::ops::Subtract<T>();
-			sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 			//after subtracting the row wise maxes take the exp
 			functions::transform::ops::Exp<T> *exp = new functions::transform::ops::Exp<T>();
@@ -3676,8 +3675,7 @@ public:
 
 			//divide by the sum
 			functions::broadcast::ops::Divide<T> *div = new functions::broadcast::ops::Divide<T>();
-			div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 
 			delete exp;
@@ -3901,15 +3899,15 @@ public:
 			functions::reduce::ops::Max<T> *max = new functions::reduce::ops::Max<T>();
 			std::vector <T> maxResult(shape[0]);
 			for (int i = 0; i < shape[0]; i++)
-				maxResult[i] = 0.0;
-			int maxShape[2] = {shape[0], 1};
-			int *maxResultShapeBuffer = shape::shapeBuffer(2, maxShape);
+                                maxResult[i] = 0.0;
+
+                        int maxShape[2] = {shape[0], 1};
+                        int *maxResultShapeBuffer = shape::shapeBuffer(2, maxShape);
 			max->exec(dx, xShapeBuffer, extraParams, maxResult.data(), maxResultShapeBuffer, maxDimension, 1);
 
 			//subtract max of each row
 			functions::broadcast::ops::Subtract<T> *sub = new functions::broadcast::ops::Subtract<T>();
-			sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 			//after subtracting the row wise maxes take the exp
 			functions::transform::ops::Exp<T> *exp = new functions::transform::ops::Exp<T>();
@@ -3922,8 +3920,7 @@ public:
 
 			//divide by the sum
 			functions::broadcast::ops::Divide<T> *div = new functions::broadcast::ops::Divide<T>();
-			div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 			functions::transform::ops::Log<T> *log = new functions::transform::ops::Log<T>();
 			log->exec(result, resultShapeBuffer, result, resultShapeBuffer, extraParams);
@@ -4094,8 +4091,7 @@ public:
 			int *resultShapeBuffer,
 			T *extraParams) {
 		if (shape::isMatrix(xShapeBuffer, 2)) {
-			int *shape = shape::shapeOf(xShapeBuffer);
-			int *stride = shape::stride(xShapeBuffer);
+                        int *shape = shape::shapeOf(xShapeBuffer);
 
 			int resultEleStide = shape::elementWiseStride(resultShapeBuffer);
 
@@ -4115,8 +4111,7 @@ public:
 
 			//subtract max of each row
 			functions::broadcast::ops::Subtract<T> *sub = new functions::broadcast::ops::Subtract<T>();
-			sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        sub->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 			//after subtracting the row wise maxes take the exp
 			functions::transform::ops::Exp<T> *exp = new functions::transform::ops::Exp<T>();
@@ -4129,8 +4124,7 @@ public:
 
 			//divide by the sum
 			functions::broadcast::ops::Divide<T> *div = new functions::broadcast::ops::Divide<T>();
-			div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, resultShapeBuffer,
-					dimension, 1);
+                        div->exec(result, resultShapeBuffer, maxResult.data(), maxResultShapeBuffer, result, dimension, 1);
 
 			if (resultEleStide >= 1) {
 				if (resultEleStide == 1) {

@@ -355,7 +355,7 @@ public:
 	 * to store the result in
 	 * @param resultStride the stride for the buffer
 	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
+         * @param indexes which indexes to copy
 	 */
 	virtual void exec(
 			T *dx,
@@ -387,7 +387,6 @@ public:
 	 * to store the result in
 	 * @param resultStride the stride for the buffer
 	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
 	 */
 	virtual void execSpecial(
 			T *dx,
@@ -409,7 +408,6 @@ public:
 	 * to store the result in
 	 * @param resultStride the stride for the buffer
 	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
 	 */
 	virtual void exec(
 			T *dx,
@@ -486,7 +484,7 @@ public:
 					yStride,
 					result,
 					resultStride,
-					&rank,
+                                        rank,
 					shapeIter,
 					&dx,
 					xStridesIter,
@@ -758,6 +756,8 @@ public:
 
 #endif
 	T op(T d1, T d2, T *params) {
+                (void)d1;
+                (void)params;
 		return d2;
 	}
 
@@ -768,6 +768,7 @@ public:
 
 #endif
 	T op(T d1, T *params) {
+                (void)params;
 		return d1;
 	}
 #ifdef __CUDACC__

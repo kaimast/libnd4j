@@ -43,7 +43,6 @@ static Data<T> * getDataIndexReduce(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * 4);
     for(int i = 0; i < 1; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -79,7 +78,6 @@ static Data<T> * getDataIndexReduceDimension(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * 4);
     for(int i = 0; i < 2; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -119,7 +117,6 @@ static Data<T> * getDataIndexReduceDimensionMulti(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * resultLength);
     for(int i = 0; i < resultLength; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 

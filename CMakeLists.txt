@@ -12,8 +12,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
 find_path(STDIO_INCLUDE_PATH stdio.h)
 
-set(CMAKE_CXX_FLAGS "-Wall -g  -fopenmp -std=c++11 -fassociative-math -funsafe-math-optimizations -march=native")
-set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g -O0 -std=c++11")
+set(CMAKE_CXX_FLAGS "-Wall -fopenmp -std=c++11 -fassociative-math -funsafe-math-optimizations -march=native")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -std=c++11")
 
 include_directories(include)
 add_subdirectory(src)
@@ -48,7 +48,7 @@ if(FATBIN)
     add_subdirectory(fatbin)
 endif()
 
-if(RUN_TEST)
+if(TESTS)
     # packages
     find_package(CUDA)
 

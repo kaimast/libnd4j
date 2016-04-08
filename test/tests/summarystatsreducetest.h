@@ -47,7 +47,6 @@ static Data<T> * getDataSummary(T *assertion,T startingVal) {
 
     ret->assertion = new T[4];
     for(int i = 0; i < 1; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -83,7 +82,6 @@ static Data<T> * getDataSummaryDimension(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * 4);
     for(int i = 0; i < 2; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -123,7 +121,6 @@ static Data<T> * getDataSummaryDimensionMulti(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * resultLength);
     for(int i = 0; i < resultLength; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -173,7 +170,6 @@ public:
     virtual void execCpuKernel() override {
         int *xShapeBuff = shapeBuffer(this->baseData->rank,this->baseData->xShape);
         int *resultShapeBuff = shapeBuffer(this->baseData->resultRank,this->baseData->resultShape);
-        printf("In exec cpu\n");
         reduce->exec(
                 this->data->data->data,
                 xShapeBuff,
@@ -191,9 +187,6 @@ public:
         this->execCpuKernel();
         int resultLength = shape::prod(this->baseData->resultShape,this->baseData->rank);
         if(resultLength == 1) {
-            if(this->result->data->data[0] != this->baseData->assertion[0]) {
-                printf("Compared assertion %f to result %f\n",this->baseData->assertion[0],this->result->data->data[0]);
-            }
             DOUBLES_EQUAL(this->baseData->assertion[0],this->result->data->data[0],1e-3);
         }
         else {

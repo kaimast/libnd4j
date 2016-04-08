@@ -1,7 +1,7 @@
 include_directories(tests)
 
-if(LINUX)
-    link_directories(/usr/local/lib)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   link_directories(/usr/local/lib)
 endif()
 
 set(TEST_FILES

@@ -51,39 +51,42 @@ TEST(PairWiseUtil,IterationOne) {
     int shape[2] = {2,2};
     int strides[2] = {2,1};
     int rank = 2;
-    double *data = (double *) malloc(sizeof(data) * 4);
+
+    double data[4];
     for(int i = 0; i < 4; i++)
         data[i] = i;
 
-    printf("Succeeded %d\n",PrepareOneRawArrayIter(rank,shape,data,strides,&rank,shapeIter,&data,dstStridesIter));
+    double *out_data = NULL;
 
+    printf("Succeeded %d\n",PrepareOneRawArrayIter(rank,shape,data,strides,&rank,shapeIter, &out_data, dstStridesIter));
 
 
     ND4J_RAW_ITER_START(dim, rank, coord, shapeIter) {
             /* Process the innermost dimension */
-            double *d = data;
+            double *d = out_data;
 
             for (int i = 0; i < shape[0]; ++i, d += strides[0]) {
                 printf("Data %f\n",d[0]);
             }
-        } ND4J_RAW_ITER_ONE_NEXT(dim, rank, coord, shapeIter, data, dstStridesIter);
-
-    free(data);
+        } ND4J_RAW_ITER_ONE_NEXT(dim, rank, coord, shapeIter, out_data, dstStridesIter);
 }
 
 
 TEST(PairWiseUtil,DifferentOrderCopy) {
     int shape[3] = {2,2,2};
 
-    double *data = (double *) malloc(sizeof(double) * 8);
+    double data[8];
+    double yData[8];
+
     for(int i = 0; i < 8; i++)
         data[i] = i + 1;
-    double *yData = (double *) malloc(sizeof(double) * 8);
+
     for(int i = 0; i < 8; i++) {
         yData[i] = i + 1;
     }
 
-    double *resultData = (double *) malloc(sizeof(double) * 48);
+    double resultData[8];
+
     for(int i = 0; i < 8; i++) {
         resultData[i] = 0.0;
     }
@@ -94,24 +97,27 @@ TEST(PairWiseUtil,DifferentOrderCopy) {
     int *yShapeBuffer = shape::shapeBuffer(3,shape);
     int indexes[] = {8};
 
-    op->exec(data,xShapeBuffer,yData,yShapeBuffer,resultData,xShapeBuffer,NULL, indexes);
+    op->exec(data, xShapeBuffer, yData, yShapeBuffer, resultData, xShapeBuffer, NULL);
     for(int i = 0; i < 8; i++) {
         CHECK_EQUAL(resultData[i],yData[i]);
     }
 
     delete op;
-
+    delete xShapeBuffer;
+    delete yShapeBuffer;
 }
 
 TEST(PairWiseUtil,PairWiseUtilEuclideanDistance) {
     int shapeArr[2] = {2,2};
-    int rank = 2;
-    int length = 4;
+    constexpr int rank = 2;
+    constexpr int length = 4;
 
-    double *data = (double *) malloc(sizeof(double) * length);
+    double data[length];
+    double yData[length];
+
     for(int i = 0; i < length; i++)
         data[i] = i + 1;
-    double *yData = (double *) malloc(sizeof(double) * length);
+
     for(int i = 0; i < length; i++) {
         yData[i] = i + 1;
     }
@@ -124,36 +130,36 @@ TEST(PairWiseUtil,PairWiseUtilEuclideanDistance) {
     int *yShapeBuffer = shape::shapeBufferFortran(rank,shapeArr);
     double result = op->execScalar(data,xShapeBuffer,NULL,yData,yShapeBuffer);
     CHECK_EQUAL(assertion,result);
+
     delete op;
-
-
 }
 
 TEST(PairWiseUtil,PairWiseUtilEuclideanDistanceDimension) {
     int shapeArr[2] = {2,2};
-    int rank = 2;
-    int length = 4;
-    double *data = (double *) malloc(sizeof(double) * length);
-    for(int i = 0; i < length; i++)
+    constexpr size_t rank = 2;
+    constexpr size_t length = 4;
+
+    double data[length];
+    double yData[length];
+
+    for(size_t i = 0; i < length; i++)
         data[i] = i + 1;
-    double *yData = (double *) malloc(sizeof(double) * length);
-    for(int i = 0; i < length; i++) {
+
+    for(size_t i = 0; i < length; i++) {
         yData[i] = i + 1;
     }
-
 
     using namespace functions::reduce3;
     Reduce3<double> *op  = new functions::reduce3::ops::EuclideanDistance<double>();
     int *xShapeBuffer = shape::shapeBuffer(rank,shapeArr);
     int *yShapeBuffer = shape::shapeBufferFortran(rank,shapeArr);
-    double *result = (double *) malloc(sizeof(double) * 2);
-    int *resultShape = (int *) malloc(sizeof(int) * rank);
+    double result[2];
+    int resultShape[rank];
     resultShape[0] = 1;
     resultShape[1] = 2;
 
-    int dimensionLength = 1;
-
-    int *dimension = (int *) malloc(sizeof(int) * dimensionLength);
+    constexpr size_t dimensionLength = 1;
+    int dimension[dimensionLength];
     dimension[0] = 0;
 
     int *resultShapeBuffer = shape::shapeBuffer(rank,resultShape);
@@ -162,20 +168,15 @@ TEST(PairWiseUtil,PairWiseUtilEuclideanDistanceDimension) {
         printf("Result[%d] is %f\n",i,result[i]);
     }
 
-    free(resultShape);
-    free(data);
-    free(yData);
-    free(result);
-    free(xShapeBuffer);
-    free(yShapeBuffer);
-    free(resultShapeBuffer);
-    free(dimension);
+    delete xShapeBuffer;
+    delete yShapeBuffer;
+    delete resultShapeBuffer;
     delete op;
-
-
 }
 
 TEST(PairWiseUtil,IterationTwo) {
+    constexpr size_t RANK = 3;
+
     int shapeIter[MAX_RANK];
     int coord[MAX_RANK];
     int dim;
@@ -183,39 +184,43 @@ TEST(PairWiseUtil,IterationTwo) {
     int yStridesIter[MAX_RANK];
     int resultStridesIter[MAX_RANK];
 
-    int shape[3] = {2,2,2};
-    int xStrides[3] = {4,2,1};
-    int yStrides[3] = {1,2,4};
+    int shape[RANK] = {2,2,2};
+    int xStrides[RANK] = {4,2,1};
+    int yStrides[RANK] = {1,2,4};
     int *resultStrides = xStrides;
-    int rank = 3;
-    double *data = (double *) malloc(sizeof(double) * 8);
+
+    double data[RANK][8];
+
     for(int i = 0; i < 8; i++)
-        data[i] = i + 1;
-    double *yData = (double *) malloc(sizeof(double) * 8);
+        data[0][i] = i + 1;
+
     for(int i = 0; i < 8; i++) {
-        yData[i] = i + 1;
+        data[1][i] = i + 1;
     }
 
-    double *resultData = (double *) malloc(sizeof(double) * 48);
     for(int i = 0; i < 8; i++) {
-        resultData[i] = 0.0;
+        data[2][i] = 0;
     }
 
-    printf("Succeeded %d\n",PrepareThreeRawArrayIter(rank,
+    double *resultData[RANK];
+
+    int out_rank = 0;
+
+    printf("Succeeded %d\n",PrepareThreeRawArrayIter<double>(RANK,
                                                      shape,
-                                                     data,
+                                                     data[0],
                                                      xStrides,
-                                                     yData,
+                                                     data[1],
                                                      yStrides,
-                                                     resultData,
+                                                     data[1],
                                                      resultStrides,
-                                                     &rank,
+                                                     out_rank,
                                                      shapeIter,
-                                                     &data,
+                                                     &resultData[0],
                                                      xStridesIter,
-                                                     &yData,
+                                                     &resultData[1],
                                                      yStridesIter,
-                                                     &resultData,
+                                                     &resultData[2],
                                                      resultStridesIter));
 
 
@@ -228,13 +233,13 @@ TEST(PairWiseUtil,IterationTwo) {
     };
 
 
-    ND4J_RAW_ITER_START(dim, rank, coord, shapeIter) {
+    ND4J_RAW_ITER_START(dim, out_rank, coord, shapeIter) {
             /* Process the innermost dimension */
-            double *xIter = data;
-            double *yIter = yData;
-            double *resultIter = resultData;
+            double *xIter = data[0];
+            double *yIter = data[1];
+            double *resultIter = data[2];
             printf("Processing dim %d\n",dim);
-            for(int i = 0;i < rank; i++) {
+            for(int i = 0;i < out_rank; i++) {
                 printf("Coord %d is %d\n",i,coord[i]);
             }
             CHECK_EQUAL(xAssertion[coord[0]][coord[1]][coord[2]],xIter[0]);
@@ -242,19 +247,15 @@ TEST(PairWiseUtil,IterationTwo) {
 
             printf("Value for x %f y %f result %f\n",xIter[0],yIter[0],resultIter[0]);
         } ND4J_RAW_ITER_THREE_NEXT(dim,
-                                   rank,
+                                   out_rank,
                                    coord,
                                    shapeIter,
-                                   data,
+                                   resultData[0],
                                    xStridesIter,
-                                   yData,
+                                   resultData[1],
                                    yStridesIter,
-                                   resultData,
+                                   resultData[2],
                                    resultStridesIter);
-
-    free(data);
-    free(yData);
-    free(resultData);
 }
 
 

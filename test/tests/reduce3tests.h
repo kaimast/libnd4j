@@ -32,7 +32,7 @@ static Data<T> * getDataReduce3(T *assertion,T startingVal) {
 
     int rank = 2;
     int length = 4;
-    int *shape = (int *) malloc(sizeof(int) * rank);
+    int *shape = new int[rank];
     shape[0] = 1;
     shape[1] = length;
     ret->yShape = shape;
@@ -54,7 +54,6 @@ static Data<T> * getDataReduce3(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * 4);
     for(int i = 0; i < 1; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 
@@ -99,7 +98,6 @@ static Data<T> * getDataReduce3Dimension(const T *assertion,T startingVal) {
 
     ret->assertion = new T[4];
 	for(int i = 0; i < 2; i++) {
-		printf("Assertion value %f\n",assertion[i]);
 		ret->assertion[i] = assertion[i];
 	}
 
@@ -147,7 +145,6 @@ static Data<T> * getDataReduce3DimensionMulti(T *assertion,T startingVal) {
 
     ret->assertion = (T *) malloc(sizeof(T) * resultLength);
     for(int i = 0; i < resultLength; i++) {
-        printf("Assertion value %f\n",assertion[i]);
         ret->assertion[i] = assertion[i];
     }
 

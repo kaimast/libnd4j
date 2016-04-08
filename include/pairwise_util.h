@@ -151,7 +151,7 @@ void quickSort(StridePermutation *arr, int elements);
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void  SortStrideArray(int ndim, int *strides,
+inline void  SortStrideArray(int ndim, const int strides[],
                       StridePermutation *out_strideperm) {
 
     /* Set up the strideperm values */
@@ -185,10 +185,10 @@ template <typename T>
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline int PrepareOneRawArrayIter(int ndim, int *shape,
-                           T *data, int *strides,
-                           int *out_ndim, int *outShape,
-                           T **out_data, int *outStrides) {
+inline int PrepareOneRawArrayIter(int ndim, const int shape[],
+                           T data[], const int strides[],
+                           int *out_ndim, int outShape[],
+                           T *out_data[], int *outStrides) {
     StridePermutation strideperm[MAX_RANK];
     int i, j;
 
@@ -585,21 +585,21 @@ template <typename T>
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-int  PrepareThreeRawArrayIter(int ndim, int *shape,
-                              T *dataA, int *stridesA,
-                              T *dataB, int *stridesB,
-                              T *dataC, int *stridesC,
-                              int *out_ndim, int *outShape,
-                              T **out_dataA, int *outStridesA,
-                              T **out_dataB, int *outStridesB,
-                              T **out_dataC, int *outStridesC)
+int  PrepareThreeRawArrayIter(int ndim, const int shape[],
+                              T *dataA, const int *stridesA,
+                              T *dataB, const int *stridesB,
+                              T *dataC, const int *stridesC,
+                              int &out_ndim, int *outShape,
+                              T **out_dataA, int outStridesA[],
+                              T **out_dataB, int outStridesB[],
+                              T **out_dataC, int outStridesC[])
 {
     StridePermutation strideperm[MAX_RANK];
     int i, j;
 
     /* Special case 0 and 1 dimensions */
     if (ndim == 0) {
-        *out_ndim = 1;
+        out_ndim = 1;
         *out_dataA = dataA;
         *out_dataB = dataB;
         *out_dataC = dataC;
@@ -614,7 +614,7 @@ int  PrepareThreeRawArrayIter(int ndim, int *shape,
         int stride_entryB = stridesB[0];
         int stride_entryC = stridesC[0];
         int shape_entry = shape[0];
-        *out_ndim = 1;
+        out_ndim = 1;
         outShape[0] = shape[0];
         /* Always make a positive stride for the first operand */
         if (stride_entryA >= 0) {
@@ -663,7 +663,7 @@ int  PrepareThreeRawArrayIter(int ndim, int *shape,
         }
         /* Detect 0-size arrays here */
         if (shape_entry == 0) {
-            *out_ndim = 1;
+            out_ndim = 1;
             *out_dataA = dataA;
             *out_dataB = dataB;
             *out_dataC = dataC;
@@ -708,7 +708,7 @@ int  PrepareThreeRawArrayIter(int ndim, int *shape,
     *out_dataA = dataA;
     *out_dataB = dataB;
     *out_dataC = dataC;
-    *out_ndim = ndim;
+    out_ndim = ndim;
     return 0;
 }
 

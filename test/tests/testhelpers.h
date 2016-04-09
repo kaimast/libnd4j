@@ -131,7 +131,7 @@ class BaseTest {
 public:
     BaseTest() {
     }
-    BaseTest(int rank,int opNum,Data<T> *data,int extraParamsLength) {
+    BaseTest(int rank, OpType opNum,Data<T> *data,int extraParamsLength) {
         this->rank = rank;
         this->baseData = data;
         this->opNum = opNum;
@@ -167,7 +167,7 @@ protected:
     int sMemSize = 3000;
     nd4j::buffer::Buffer<T> *extraParamsBuff = NULL;
     int length;
-    int opNum;
+    OpType opNum;
     int extraParamsLength;
     virtual void executeCudaKernel() = 0;
     virtual void execCpuKernel() = 0;

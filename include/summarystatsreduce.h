@@ -23,8 +23,11 @@
 #include <jni.h>
 #endif
 
+#include "optype.h"
+
 namespace functions {
     namespace summarystats {
+
 
 // This example computes several statistical properties of a data
 // series in a single reduction.  The algorithm is described in detail here:
@@ -103,7 +106,7 @@ namespace functions {
                 M2 = target->M2;
                 M3 = target->M3;
                 M4 = target->M4;
-                bias = target->bias;
+                bias /= target->bias;
             }
 
 #ifdef __CUDACC__
@@ -1465,12 +1468,11 @@ struct SharedSummaryStatsData<double> {
 #ifdef __CUDACC__
             __inline__ __host__ __device__
 #endif
-            functions::summarystats::SummaryStatsReduce<T> * getOp(int op,bool biasCorrected) {
-                if (op == 0) {
-                    return new functions::summarystats::ops::Variance<T>(biasCorrected);
-                } else if (op == 1) {
-                    return new functions::summarystats::ops::StandardDeviation<T>(biasCorrected);
-
+            functions::summarystats::SummaryStatsReduce<T> * getOp(OpType op, bool biasCorrected) {
+                if (op == op_type::Variance) {
+                    return new ops::Variance<T>(biasCorrected);
+                } else if (op == op_type::StandardDeviation) {
+                    return new ops::StandardDeviation<T>(biasCorrected);
                 }
                 return NULL;
             }

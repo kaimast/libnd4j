@@ -12,11 +12,12 @@
 #include <templatemath.h>
 #include <buffer.h>
 #include <array.h>
-int arrsEquals(int rank, int *comp1, int *comp2);
+
+#include "optype.h"
 
 template<typename T>
-int arrsEquals(int rank, T *comp1, T *comp2) {
-    for (int i = 0; i < rank; i++) {
+inline int arrsEquals(size_t rank, const T comp1[], const T comp2[]) {
+    for (size_t i = 0; i < rank; i++) {
         DOUBLES_EQUAL(comp1[i],comp2[i],1e-1);
     }
 
@@ -28,6 +29,7 @@ class Data {
 public:
     ~Data() {
         //NOTE: delete nullptr; is well defined!
+        // but CppUnit does seem to mind...
 
         if(xShape)
             delete []xShape;
@@ -222,7 +224,7 @@ public:
     PairWiseTest() {
     }
     //BaseTest(int rank,int opNum,Data<T> *data,int extraParamsLength)
-    PairWiseTest(int rank,int opNum,Data<T> *data,int extraParamsLength)
+    PairWiseTest(int rank, OpType opNum, Data<T> *data, int extraParamsLength)
             :BaseTest<T>(rank,opNum,data,extraParamsLength)  {
         init();
     }
@@ -243,8 +245,8 @@ template <typename T>
 class TwoByTwoTest : public BaseTest<T> {
 public:
     virtual ~TwoByTwoTest() {}
-    TwoByTwoTest(int rank,int opNum,Data<T> *data,int extraParamsLength) : BaseTest<T>(rank,opNum,data,extraParamsLength) {}
-    TwoByTwoTest(int opNum,Data<T> *data,int extraParamsLength) : BaseTest<T>(2,opNum,data,extraParamsLength) {}
+    TwoByTwoTest(int rank, OpType opNum,Data<T> *data,int extraParamsLength) : BaseTest<T>(rank,opNum,data,extraParamsLength) {}
+    TwoByTwoTest(OpType opNum,Data<T> *data,int extraParamsLength) : BaseTest<T>(2,opNum,data,extraParamsLength) {}
     virtual void initShape() override {
         for(int i = 0; i < 2; i++) {
             this->shape[i] = 2;

@@ -1,3 +1,8 @@
+// Created by agibsonccc on 1/4/16.
+//
+
+#pragma once
+
 #include <broadcasting.h>
 #include <array.h>
 #include <shape.h>
@@ -58,10 +63,6 @@ static Data<T> * getDataBroadcast(int rank,T *comparison) {
         return ret;
 
 }
-
-
-
-
 
 
 template <typename T>
@@ -353,5 +354,4 @@ TEST(BroadCasting,ObjectOrientedFloatCopy) {
         FloatBroadcastTranformTest *test = new FloatBroadcastTranformTest(rank,opNum,data,1);
         delete data;
         delete test;
-
 }

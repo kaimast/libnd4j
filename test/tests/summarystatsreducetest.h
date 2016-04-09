@@ -12,6 +12,7 @@
 #include "testhelpers.h"
 #include <summarystatsreduce.h>
 #include <helper_cuda.h>
+
 TEST_GROUP(SummaryStatsReduce) {
 
     static int output_method(const char* output, ...) {
@@ -28,7 +29,7 @@ TEST_GROUP(SummaryStatsReduce) {
 };
 
 template <typename T>
-static Data<T> * getDataSummary(T *assertion,T startingVal) {
+static Data<T> * getDataSummary(const T assertion[2],T startingVal) {
     Data<T> *ret = new Data<T>();
 
     int rank = 2;
@@ -63,7 +64,7 @@ static Data<T> * getDataSummary(T *assertion,T startingVal) {
 }
 
 template <typename T>
-static Data<T> * getDataSummaryDimension(T *assertion,T startingVal) {
+inline Data<T> * getDataSummaryDimension(const T assertion[2],T startingVal) {
     Data<T> *ret = new Data<T>();
 
     int rank = 2;
@@ -99,41 +100,44 @@ static Data<T> * getDataSummaryDimension(T *assertion,T startingVal) {
 }
 
 template <typename T>
-static Data<T> * getDataSummaryDimensionMulti(T *assertion,T startingVal) {
-    Data<T> *ret = new Data<T>();
+inline Data<T>* getDataSummaryDimensionMulti(const T assertion[3], T startingVal) {
+    auto ret = new Data<T>;
 
-    int rank = 3;
-    int resultRank = 2;
-    int length = 12;
-    int resultLength = 3;
-    int *shape = (int *) malloc(sizeof(int) * rank);
+    constexpr size_t rank = 3;
+    constexpr size_t resultRank = 2;
+    constexpr size_t length = 12;
+    constexpr size_t resultLength = 3;
+
+    int *shape = new int[rank];
     shape[0] = 2;
     shape[1] = 2;
     shape[2] = 3;
+
     ret->xShape = shape;
     ret->rank = rank;
-    ret->data = (T *) malloc(sizeof(T) * length);
-    for(int i = 0; i < length; i++)
+    ret->data = new T[length];
+
+    for(size_t i = 0; i < length; i++)
         ret->data[i] = i + 1;
-    T *extraParams = (T *) malloc(sizeof(T) * 4);
+
+    T *extraParams = new T[4];
     extraParams[0] = startingVal;
     ret->extraParams = extraParams;
 
-    ret->assertion = (T *) malloc(sizeof(T) * resultLength);
-    for(int i = 0; i < resultLength; i++) {
-        ret->assertion[i] = assertion[i];
-    }
+    ret->assertion = new T[resultLength];
+    memcpy(ret->assertion, assertion, sizeof(T)*resultLength);
 
-    ret->dimension = (int *) malloc(sizeof(int) * 2);
+    ret->dimension = new int[resultRank];
     ret->dimension[0] = 0;
     ret->dimension[1] = 1;
     ret->dimensionLength = 2;
-    ret->result = (T *) malloc(sizeof(T) * resultLength);
+
+    ret->result = new T[resultLength];
     ret->resultRank = 2;
-    ret->resultShape = (int *) malloc(sizeof(int) * resultRank);
+
+    ret->resultShape = new int [resultRank];
     ret->resultShape[0] = 1;
     ret->resultShape[1] = 3;
-
 
     return ret;
 }
@@ -152,7 +156,7 @@ public:
         this->sMemSize = 20000;
 
     }
-    SummaryStatsReduceTest(int rank,int opNum,Data<T> *data,int extraParamsLength)
+    SummaryStatsReduceTest(int rank, OpType opNum, Data<T> *data,int extraParamsLength)
             :  BaseTest<T>(rank,opNum,data,extraParamsLength){
         createOperationAndOpFactory();
 
@@ -301,118 +305,111 @@ public:
 };
 
 TEST(SummaryStatsReduce,ObjectOrientedStandardDeviation) {
-    int rank = 2;
-    int opNum = 1;
-    double assertion[1] = {1.29099440574646};
+    constexpr size_t rank = 2;
+    constexpr double assertion[] = {1.29099440574646};
+
     Data<double> *data = getDataSummary<double>(assertion,0);
-    DoubleSummaryStatsReduceTest *test = new DoubleSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    DoubleSummaryStatsReduceTest test(rank, op_type::StandardDeviation, data, 1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
-
-
-
 
 TEST(SummaryStatsReduce,ObjectOrientedVariance) {
-    int rank = 2;
-    int opNum = 0;
-    double assertion[1] = {1.66667};
+    constexpr size_t rank = 2;
+    constexpr double assertion[] = {1.66667};
+
     Data<double> *data = getDataSummary<double>(assertion,0);
-    DoubleSummaryStatsReduceTest *test = new DoubleSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    DoubleSummaryStatsReduceTest test(rank, op_type::Variance, data, 1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
-
-
-
 TEST(SummaryStatsReduce,ObjectOrientedDimensionStandardDeviation) {
-    int rank = 2;
-    int opNum = 1;
-    double assertion[2] = { 0.71, 0.71};
+    constexpr size_t rank = 2;
+    constexpr double assertion[] = { 0.71, 0.71};
+
     Data<double> *data = getDataSummaryDimension<double>(assertion,0);
-    DoubleSummaryStatsReduceTest *test = new DoubleSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    DoubleSummaryStatsReduceTest test(rank, op_type::StandardDeviation,data,1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
 TEST(SummaryStatsReduce,ObjectOrientedDimensionVariance) {
-    int rank = 2;
-    int opNum = 0;
-    double assertion[2] = {0.50, 0.50};
+    constexpr size_t rank = 2;
+    double assertion[] = {0.50, 0.50};
     Data<double> *data = getDataSummaryDimension<double>(assertion,0);
-    DoubleSummaryStatsReduceTest *test = new DoubleSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    DoubleSummaryStatsReduceTest test(rank, op_type::Variance,data,1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
 TEST(SummaryStatsReduce,ObjectOrientedFloatStandardDeviation) {
-    int rank = 2;
-    int opNum = 1;
-    float assertion[1] = {1.29099440574646};
+    constexpr size_t rank = 2;
+    float assertion[] = {1.29099440574646};
+
     Data<float> *data = getDataSummary<float>(assertion,0);
-    FloatSummaryStatsReduceTest *test = new FloatSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    FloatSummaryStatsReduceTest test(rank, op_type::StandardDeviation, data, 1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
-
-
-
 
 TEST(SummaryStatsReduce,ObjectOrientedFloatVariance) {
-    int rank = 2;
-    int opNum = 0;
-    float assertion[1] = {1.66667};
+    constexpr size_t rank = 2;
+    float assertion[] = {1.66667};
+
     Data<float> *data = getDataSummary<float>(assertion,0);
-    FloatSummaryStatsReduceTest *test = new FloatSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    FloatSummaryStatsReduceTest test(rank, op_type::Variance, data, 1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
-
-
-
 TEST(SummaryStatsReduce,ObjectOrientedFloatDimensionStandardDeviation) {
-    int rank = 2;
-    int opNum = 1;
-    float assertion[2] = { 0.71, 0.71};
+    constexpr size_t rank = 2;
+    constexpr float assertion[] = { 0.71, 0.71};
+
     Data<float> *data = getDataSummaryDimension<float>(assertion,0);
-    FloatSummaryStatsReduceTest *test = new FloatSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    FloatSummaryStatsReduceTest test(rank, op_type::StandardDeviation, data, 1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
 TEST(SummaryStatsReduce,ObjectOrientedFloatDimensionVariance) {
-    int rank = 2;
-    int opNum = 0;
-    float assertion[2] = {0.50, 0.50};
+    constexpr size_t rank = 2;
+    constexpr float assertion[2] = {0.50, 0.50};
+
     Data<float> *data = getDataSummaryDimension<float>(assertion,0);
-    FloatSummaryStatsReduceTest *test = new FloatSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
+    FloatSummaryStatsReduceTest test(rank, op_type::Variance,data,1);
+
+    test.run();
+
     delete data;
-    delete test;
 }
 
 TEST(SummaryStatsReduce,ObjectOrientedFloatDimensionStandardDeviationMulti) {
-    int opNum = 0;
-    int rank = 3;
-    float comparison[3] = {15.0,15.0,15.0};
-    Data<float> *data = getDataSummaryDimensionMulti<float>(comparison,0);
+    constexpr int rank = 3;
+    constexpr float comparison[] = {15.0,15.0,15.0};
+
+    auto data = getDataSummaryDimensionMulti<float>(comparison, 0);
     data->extraParams[0] = 1.0;
-    FloatSummaryStatsReduceTest *test = new FloatSummaryStatsReduceTest(rank,opNum,data,1);
-    test->run();
-    delete test;
+    FloatSummaryStatsReduceTest test(rank, op_type::Variance, data, 1);
+
+    test.run();
+
     delete data;
 }
-
-
-
 
 #endif /* SUMMARYSTATSREDUCETEST_H_ */

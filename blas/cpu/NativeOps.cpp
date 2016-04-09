@@ -533,7 +533,7 @@ void NativeOps::execScalarDouble(
  * @param xShapeInfo
  * @param extraParams
  */
-double   NativeOps::execSummaryStatsScalarDouble(Nd4jPointer *extraPointers,int opNum,Nd4jPointer x,
+double   NativeOps::execSummaryStatsScalarDouble(Nd4jPointer *extraPointers, OpType opNum,Nd4jPointer x,
                                                  Nd4jPointer xShapeInfo,
                                                  Nd4jPointer extraParams,bool biasCorrected) {
     double *xPointer = reinterpret_cast<double *>(x);
@@ -554,7 +554,7 @@ double   NativeOps::execSummaryStatsScalarDouble(Nd4jPointer *extraPointers,int 
  * @param result
  * @param resultShapeInfo
  */
-void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers,int opNum,
+void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers, OpType opNum,
                                          Nd4jPointer x,
                                          Nd4jPointer xShapeInfo,
                                          Nd4jPointer extraParams,
@@ -585,7 +585,7 @@ void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers,int opNum,
  * @param dimension
  * @param dimensionLength
  */
-void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers,int opNum,Nd4jPointer x,
+void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers, OpType opNum,Nd4jPointer x,
                                          Nd4jPointer xShapeInfo,
                                          Nd4jPointer extraParams,
                                          Nd4jPointer result,
@@ -618,7 +618,7 @@ void   NativeOps::execSummaryStatsDouble(Nd4jPointer *extraPointers,int opNum,Nd
  * @param extraParams
  * @param n
  */
-void   NativeOps::execTransformDouble(Nd4jPointer *extraPointers,int opNum,
+void   NativeOps::execTransformDouble(Nd4jPointer *extraPointers, OpType opNum,
                                       Nd4jPointer dx,
                                       int xStride,
                                       Nd4jPointer result,
@@ -642,7 +642,7 @@ void   NativeOps::execTransformDouble(Nd4jPointer *extraPointers,int opNum,
  */
 void   NativeOps::execTransformDouble(
         Nd4jPointer *extraPointers
-        ,int opNum,
+        , OpType opNum,
         Nd4jPointer dx,
         Nd4jPointer xShapeInfo,
         Nd4jPointer result,
@@ -674,7 +674,7 @@ void   NativeOps::execTransformDouble(
  */
 void   NativeOps::execTransformDouble(
         Nd4jPointer *extraPointers,
-        int opNum,
+        OpType opNum,
         Nd4jPointer dx,
         Nd4jPointer xShapeInfo,
         Nd4jPointer result,
@@ -708,7 +708,7 @@ void   NativeOps::execTransformDouble(
  * @param xShapeInfo
  * @param extraParams
  */
-float   NativeOps::execIndexReduceScalarFloat(Nd4jPointer *extraPointers,int opNum,
+float   NativeOps::execIndexReduceScalarFloat(Nd4jPointer *extraPointers, OpType opNum,
                                               Nd4jPointer x,
                                               Nd4jPointer xShapeInfo,
                                               Nd4jPointer extraParams) {
@@ -729,7 +729,7 @@ float   NativeOps::execIndexReduceScalarFloat(Nd4jPointer *extraPointers,int opN
  * @param dimension
  * @param dimensionLength
  */
-void   NativeOps::execIndexReduceFloat(Nd4jPointer *extraPointers,int opNum,
+void   NativeOps::execIndexReduceFloat(Nd4jPointer *extraPointers, OpType opNum,
                                        Nd4jPointer x,
                                        Nd4jPointer xShapeInfo,
                                        Nd4jPointer extraParams,
@@ -758,7 +758,7 @@ void   NativeOps::execIndexReduceFloat(Nd4jPointer *extraPointers,int opNum,
  * @param dimension
  * @param dimensionLength
  */
-void   NativeOps::execBroadcastFloat(Nd4jPointer *extraPointers,int opNum,
+void   NativeOps::execBroadcastFloat(Nd4jPointer *extraPointers,OpType opNum,
                                      Nd4jPointer x,
                                      Nd4jPointer xShapeInfo,
                                      Nd4jPointer y,

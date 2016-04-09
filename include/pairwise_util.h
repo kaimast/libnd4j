@@ -391,7 +391,7 @@ inline void quickSort(StridePermutation *arr, int elements) {
     }
 }
 
-/*
+/**
  * The same as PrepareOneRawArrayIter, but for two
  * operands instead of one. Any broadcasting of the two operands
  * should have already been done before calling this function,
@@ -565,7 +565,7 @@ int PrepareTwoRawArrayIter(int ndim, int *shape,
     return 0;
 }
 
-/*
+/**
  * The same as PrepareOneRawArrayIter, but for three
  * operands instead of one. Any broadcasting of the three operands
  * should have already been done before calling this function,
@@ -595,7 +595,6 @@ int  PrepareThreeRawArrayIter(int ndim, const int shape[],
                               T **out_dataC, int outStridesC[])
 {
     StridePermutation strideperm[MAX_RANK];
-    int i, j;
 
     /* Special case 0 and 1 dimensions */
     if (ndim == 0) {
@@ -638,7 +637,7 @@ int  PrepareThreeRawArrayIter(int ndim, const int shape[],
 
     /* Sort the axes based on the destination strides */
     SortStrideArray(ndim, stridesA, strideperm);
-    for (i = 0; i < ndim; ++i) {
+    for (int i = 0; i < ndim; ++i) {
         int iperm = strideperm[ndim - i - 1].perm;
         outShape[i] = shape[iperm];
         outStridesA[i] = stridesA[iperm];
@@ -647,7 +646,7 @@ int  PrepareThreeRawArrayIter(int ndim, const int shape[],
     }
 
     /* Reverse any negative strides of operand A */
-    for (i = 0; i < ndim; ++i) {
+    for (int i = 0; i < ndim; ++i) {
         int stride_entryA = outStridesA[i];
         int stride_entryB = outStridesB[i];
         int stride_entryC = outStridesC[i];
@@ -676,8 +675,8 @@ int  PrepareThreeRawArrayIter(int ndim, const int shape[],
     }
 
     /* Coalesce any dimensions where possible */
-    i = 0;
-    for (j = 1; j < ndim; ++j) {
+    int i = 0;
+    for (int j = 1; j < ndim; ++j) {
         if (outShape[i] == 1) {
             /* Drop axis i */
             outShape[i] = outShape[j];

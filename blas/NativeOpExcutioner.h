@@ -433,7 +433,7 @@ public:
      * @param result
      * @param resultShapeInfo
      */
-    void execSummaryStats(int opNum,
+    void execSummaryStats(OpType opNum,
                           T *x,
                           int *xShapeInfo,
                           T *extraParams,
@@ -453,7 +453,7 @@ public:
     * @param result
     * @param resultShapeInfo
     */
-    T execSummaryStatsScalar(int opNum,
+    T execSummaryStatsScalar(OpType opNum,
                              T *x,
                              int *xShapeInfo,
                              T *extraParams,bool biasCorrected) {

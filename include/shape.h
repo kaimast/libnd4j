@@ -3803,9 +3803,10 @@ __device__ int tadOffset(int *xInfo, int offset) {
 #endif
 
     inline int *toShapeBuffer(const ShapeInformation *info) {
-        int *ret = (int *) malloc(sizeof(int) * shapeInfoLength(info->rank));
+        int *ret = new int[shapeInfoLength(info->rank)];
         int count = 1;
         const int rank = info->rank;
+
         ret[0] = info->rank;
 #pragma simd
         for (int i = 0; i < rank; i++) {

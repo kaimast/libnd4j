@@ -64,10 +64,6 @@ TEST(PairWiseUtil,IterationOne) {
     ND4J_RAW_ITER_START(dim, rank, coord, shapeIter) {
             /* Process the innermost dimension */
             double *d = out_data;
-
-            for (int i = 0; i < shape[0]; ++i, d += strides[0]) {
-                printf("Data %f\n",d[0]);
-            }
         } ND4J_RAW_ITER_ONE_NEXT(dim, rank, coord, shapeIter, out_data, dstStridesIter);
 }
 
@@ -164,9 +160,6 @@ TEST(PairWiseUtil,PairWiseUtilEuclideanDistanceDimension) {
 
     int *resultShapeBuffer = shape::shapeBuffer(rank,resultShape);
     op->exec(data,xShapeBuffer,NULL,yData,yShapeBuffer,result,resultShapeBuffer,dimension,dimensionLength);
-    for(int i = 0; i < 2; i++) {
-        printf("Result[%d] is %f\n",i,result[i]);
-    }
 
     delete xShapeBuffer;
     delete yShapeBuffer;
@@ -212,7 +205,7 @@ TEST(PairWiseUtil,IterationTwo) {
                                                      xStrides,
                                                      data[1],
                                                      yStrides,
-                                                     data[1],
+                                                     data[2],
                                                      resultStrides,
                                                      out_rank,
                                                      shapeIter,
@@ -235,13 +228,10 @@ TEST(PairWiseUtil,IterationTwo) {
 
     ND4J_RAW_ITER_START(dim, out_rank, coord, shapeIter) {
             /* Process the innermost dimension */
-            double *xIter = data[0];
-            double *yIter = data[1];
-            double *resultIter = data[2];
-            printf("Processing dim %d\n",dim);
-            for(int i = 0;i < out_rank; i++) {
-                printf("Coord %d is %d\n",i,coord[i]);
-            }
+            double *xIter = resultData[0];
+            double *yIter = resultData[1];
+            double *resultIter = resultData[2];
+
             CHECK_EQUAL(xAssertion[coord[0]][coord[1]][coord[2]],xIter[0]);
             CHECK_EQUAL(yAssertion[coord[0]][coord[1]][coord[2]],yIter[0]);
 

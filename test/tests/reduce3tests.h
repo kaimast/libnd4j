@@ -27,11 +27,12 @@ TEST_GROUP(Reduce3) {
 
 
 template <typename T>
-static Data<T> * getDataReduce3(T *assertion,T startingVal) {
+static Data<T> * getDataReduce3(const T assertion[1], T startingVal) {
     Data<T> *ret = new Data<T>();
 
-    int rank = 2;
-    int length = 4;
+    constexpr size_t rank = 2;
+    constexpr size_t length = 4;
+
     int *shape = new int[rank];
     shape[0] = 1;
     shape[1] = length;
@@ -39,31 +40,32 @@ static Data<T> * getDataReduce3(T *assertion,T startingVal) {
     ret->xShape = shape;
     ret->rank = 2;
     ret->yRank = 2;
-    ret->data = (T *) malloc(sizeof(T) * 4);
-    ret->y = (T *) malloc(sizeof(T) * 4);
+    ret->data = new T[length];
+    ret->y = new T[length];
 
-    for(int i = 0; i < 4; i++) {
+    for(int i = 0; i < length; i++) {
         ret->data[i] = i + 1;
         ret->y[i] = i + 2;
     }
 
-    T *extraParams = (T *) malloc(sizeof(T) * 4);
+    T *extraParams = new T[length];
     for(int i = 0; i < 4; i++)
         extraParams[i] = startingVal;
+
     ret->extraParams = extraParams;
 
-    ret->assertion = (T *) malloc(sizeof(T) * 4);
+    ret->assertion = new T[length];
     for(int i = 0; i < 1; i++) {
         ret->assertion[i] = assertion[i];
     }
 
-    ret->dimension = (int *) malloc(sizeof(int) * 2);
+    ret->dimension = new int[rank];
     ret->dimension[0] = shape::MAX_DIMENSION;
     ret->dimensionLength = 1;
-    ret->result = (T *) malloc(sizeof(T));
+    ret->result = new T;
     ret->resultRank = 2;
-    ret->resultShape = (int *) malloc(sizeof(int) * 2);
-    for(int i = 0; i < 2; i++)
+    ret->resultShape = new int[ret->resultRank];
+    for(int i = 0; i < ret->resultRank; i++)
         ret->resultShape[i] = 1;
 
     return ret;

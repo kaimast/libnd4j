@@ -106,7 +106,7 @@ namespace functions {
                 M2 = target->M2;
                 M3 = target->M3;
                 M4 = target->M4;
-                bias /= target->bias;
+                bias = target->bias;
             }
 
 #ifdef __CUDACC__

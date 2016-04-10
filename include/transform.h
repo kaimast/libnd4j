@@ -4857,15 +4857,9 @@ namespace functions {
                                         resultStridesIter);
 
                                 //pointer to where max value would be
-<<<<<<< HEAD
                                 if(shape::order(resultShapeBuffer) == 'c' || (shape::order(resultShapeBuffer) == 'f' &&
-                                                                                     maxIdx * shape::stride(resultShapeBuffer)[shape::rank(resultShapeBuffer) - 1] >=
-                                                                                             shape::length(resultShapeBuffer)))
-=======
-                                if(shape::order(resultShapeBuffer) == 'c' || shape::order(resultShapeBuffer) == 'f' &&
                                                                              maxIdx * shape::stride(resultShapeBuffer)[shape::rank(resultShapeBuffer) - 1] >=
-                                                                             shape::length(resultShapeBuffer))
->>>>>>> 6aa463d74aaf7cad6b4f5b100fff65e818df73c9
+                                                                             shape::length(resultShapeBuffer)))
                                     originalResult[maxIdx] = 1.0;
                                 else
                                     originalResult[maxIdx * shape::stride(resultShapeBuffer)[shape::rank(resultShapeBuffer) - 1]] = 1.0;
@@ -4959,30 +4953,6 @@ namespace functions {
 	virtual void execSpecial(
 			T *dx,
                         int *xShapeBuffer,
-<<<<<<< HEAD
-			T *result,
-			int *resultShapeBuffer,
-                        T *extraParams) override {
-                if(extraParams == NULL || extraParams[0] == 0 || (extraParams[0] == 1 && extraParams[1] == shape::MAX_DIMENSION)) {
-			this->doAll(dx,xShapeBuffer,result,resultShapeBuffer,extraParams);
-		}
-		else {
-			int dimensionLength = (int) extraParams[0];
-			std::vector<int> dimension(dimensionLength);
-			for(int i = 0; i < dimensionLength; i++) {
-				dimension[i] = (int) extraParams[i + 1];
-			}
-
-			int tads = shape::tensorsAlongDimension(xShapeBuffer,dimension.data(),dimensionLength);
-                        int *tadShapeInfo = shape::tadShapeInfo(0,xShapeBuffer,dimension.data(),dimensionLength);
-			for(int i = 0; i < tads; i++) {
-				int offset = shape::tadOffset(i,xShapeBuffer,dimension.data(),dimensionLength);
-                                this->doAll(dx + offset,tadShapeInfo,result + offset,resultShapeBuffer,extraParams);
-			}
-		}
-
-	}
-=======
                         T *result,
                         int *resultShapeBuffer,
                         T *extraParams) {
@@ -5081,7 +5051,6 @@ namespace functions {
 
                         int numOnes = 0;
                         int *shape = shape::shapeOf(xShapeBuffer);
-                        int *stride = shape::stride(xShapeBuffer);
                         int wholeRank = shape::rank(xShapeBuffer);
                         bool squeezed = false;
                         bool newSqueezeDimensions = false;
@@ -5095,8 +5064,8 @@ namespace functions {
                         if (numOnes > 0 && wholeRank > 2) {
                             xShapeBuffer = shape::squeezeDimensions(
                                     xShapeBuffer,
-                                    &dimension,
-                                    &dimensionLength,
+                                    dimension,
+                                    dimensionLength,
                                     &squeezed,
                                     &newSqueezeDimensions,
                                     wholeRank,
@@ -5110,10 +5079,6 @@ namespace functions {
                         //permuted version of the x shape info for setting up the tad problem
                         int *tadShapeShapeInfo = shape::shapeInfoOnlyShapeAndStride(xShapeBuffer, dimension,
                                                                                     dimensionLength, false);
-                        int *xShape = shape::shapeOf(tadShapeShapeInfo);
-                        int *xStride = shape::stride(tadShapeShapeInfo);
-                        int tadLength = shape::length(tadShapeShapeInfo);
-                        int rank = shape::rank(tadShapeShapeInfo);
 #pragma omp  parallel  for
                         for (int i = 0; i < tads; i++) {
                             int offset = shape::tadOffset(i, xShapeBuffer, dimension, dimensionLength);
@@ -5181,9 +5146,8 @@ namespace functions {
 
                     }
                 }
->>>>>>> 6aa463d74aaf7cad6b4f5b100fff65e818df73c9
 
-	/**
+         /**
 	 * The op for transforms
 	 * @param d1
 	 * @param params

@@ -31,27 +31,27 @@
 #include <cuda_runtime.h>
 #endif
 namespace functions {
-namespace transform {
+    namespace transform {
 
-template<typename T>
-class Transform : public functions::ops::Op<T> {
-protected:
-	bool requiresSpecial = false;
+        template<typename T>
+        class Transform : public functions::ops::Op<T> {
+        protected:
+            bool requiresSpecial = false;
 
-public:
+        public:
 
-	/**
-	 *
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) = 0;
+            /**
+             *
+             */
+            virtual void execSpecial(
+                    T *dx,
+                    int *xShapeBuffer,
+                    T *result,
+                    int *resultShapeBuffer,
+                    T *extraParams) = 0;
 
 #ifdef __CUDACC__
-	/**
+            /**
 	 *
 	 */
 
@@ -62,24 +62,24 @@ public:
 			int *resultShapeBuffer,
 			T *extraParams) = 0;
 #endif
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+            /**
+             * The op for transforms
+             * @param d1
+             * @param params
+             * @return
+             */
+            virtual
 #ifdef __CUDACC__
-	inline __device__ __host__
+            inline __device__ __host__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) = 0;
+            T op(T d1, T *params) = 0;
 
 #ifdef __CUDACC__
-	/**
+            /**
 	 * Cuda implementation of transform
 	 * @param dx
 	 * @param xShapeInfo
@@ -224,7 +224,7 @@ public:
 	 */
 	virtual void exec(
 			T *dx,
-			int *xShapeInfo,
+                        const int *xShapeInfo,
 			T *result,
 			int *resultShapeInfo,
 			T *extraParams,
@@ -248,7 +248,7 @@ public:
 	 */
 	virtual void exec(
 			T *dx,
-			int *xShapeInfo,
+                        const int *xShapeInfo,
 			T *result,
 			int *resultShapeInfo,
 			T *extraParams,
@@ -256,195 +256,195 @@ public:
                         const Nd4jIndex *resultIndexes) {
 		int n = shape::length(xShapeInfo);
 #pragma omp parallel for
-		for (int i = 0; i < n; i++) {
-			result[resultIndexes[i]] = op(dx[indexes[i]], extraParams);
-		}
-	}
+                for (int i = 0; i < n; i++) {
+                    result[resultIndexes[i]] = op(dx[indexes[i]], extraParams);
+                }
+            }
 
 
-	/**
-	 * CPU execution
-	 * @param dx the input
-	 * @param xStride the stride to iterate for the input
-	 * @param result the result buffer
-	 * @param resultStride the stride for result
-	 * storage
-	 * @param extraParams the extra parameters
-	 * @param n the number of elements to iterate on
-	 */
-	virtual void exec(
-			T *dx,
-			int *xShapeInfo,
-			T *result,
-			int *resultShapeInfo,
-			T *extraParams) {
+            /**
+             * CPU execution
+             * @param dx the input
+             * @param xStride the stride to iterate for the input
+             * @param result the result buffer
+             * @param resultStride the stride for result
+             * storage
+             * @param extraParams the extra parameters
+             * @param n the number of elements to iterate on
+             */
+            virtual void exec(
+                    T *dx,
+                    int *xShapeInfo,
+                    T *result,
+                    int *resultShapeInfo,
+                    T *extraParams)  {
 
-		if(this->requiresSpecial) {
-			this->execSpecial(dx,xShapeInfo,result,resultShapeInfo,extraParams);
-			return;
-		}
+                if(this->requiresSpecial) {
+                    this->execSpecial(dx,xShapeInfo,result,resultShapeInfo,extraParams);
+                    return;
+                }
 
-		int n = shape::length(xShapeInfo);
-		int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
-		int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
-		if(xElementWiseStride >= 1 && resultElementWiseStride >= 1 && shape::order(xShapeInfo) == shape::order(resultShapeInfo)) {
-			exec(dx,xElementWiseStride,result,resultElementWiseStride,extraParams,n);
-		}
-		else {
-			int shapeIter[MAX_RANK];
-			int coord[MAX_RANK];
-			int dim;
-			int xStridesIter[MAX_RANK];
-			int resultStridesIter[MAX_RANK];
-			int *xShape = shape::shapeOf(xShapeInfo);
-			int *xStride = shape::stride(xShapeInfo);
-			int *resultStride = shape::stride(resultShapeInfo);
-			int rank = shape::rank(xShapeInfo);
-			if(PrepareTwoRawArrayIter<T>(rank,
-					xShape,
-					dx,
-					xStride,
-					result,
-					resultStride,
-					&rank,
-					shapeIter,
-					&dx,
-					xStridesIter,
-					&result,
-					resultStridesIter) >= 0) {
-				ND4J_RAW_ITER_START(dim, rank, coord, shapeIter);
-				{
-					/* Process the innermost dimension */
-					T *xIter = dx;
-					T *resultIter = result;
-					resultIter[0] = op(xIter[0], extraParams);
-				}
-				ND4J_RAW_ITER_TWO_NEXT(dim,
-						rank,
-						coord,
-						shapeIter,
-						dx,
-						xStridesIter,
-						result,
-						resultStridesIter);
+                int n = shape::length(xShapeInfo);
+                int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+                int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
+                if(xElementWiseStride >= 1 && resultElementWiseStride >= 1 && shape::order(xShapeInfo) == shape::order(resultShapeInfo)) {
+                    exec(dx,xElementWiseStride,result,resultElementWiseStride,extraParams,n);
+                }
+                else {
+                    int shapeIter[MAX_RANK];
+                    int coord[MAX_RANK];
+                    int dim;
+                    int xStridesIter[MAX_RANK];
+                    int resultStridesIter[MAX_RANK];
+                    int *xShape = shape::shapeOf(xShapeInfo);
+                    int *xStride = shape::stride(xShapeInfo);
+                    int *resultStride = shape::stride(resultShapeInfo);
+                    int rank = shape::rank(xShapeInfo);
+                    if(PrepareTwoRawArrayIter<T>(rank,
+                                                 xShape,
+                                                 dx,
+                                                 xStride,
+                                                 result,
+                                                 resultStride,
+                                                 &rank,
+                                                 shapeIter,
+                                                 &dx,
+                                                 xStridesIter,
+                                                 &result,
+                                                 resultStridesIter) >= 0) {
+                        ND4J_RAW_ITER_START(dim, rank, coord, shapeIter);
+                        {
+                            /* Process the innermost dimension */
+                            T *xIter = dx;
+                            T *resultIter = result;
+                            resultIter[0] = op(xIter[0], extraParams);
+                        }
+                        ND4J_RAW_ITER_TWO_NEXT(dim,
+                                               rank,
+                                               coord,
+                                               shapeIter,
+                                               dx,
+                                               xStridesIter,
+                                               result,
+                                               resultStridesIter);
 
-			}
+                    }
 
-		}
+                }
 
-	}
+            }
 
 
-	/**
-	 * CPU execution
-	 * @param dx the input
-	 * @param xStride the stride to iterate for the input
-	 * @param result the result buffer
-	 * @param resultStride the stride for result
-	 * storage
-	 * @param extraParams the extra parameters
-	 * @param n the number of elements to iterate on
-	 */
-	virtual void exec(T *dx,
-			int xStride,
-			T *result,
-			int resultStride,
-			T *extraParams,
-			int n) {
-		if (xStride == 1 && resultStride == 1) {
-			if(n < 8000) {
+            /**
+             * CPU execution
+             * @param dx the input
+             * @param xStride the stride to iterate for the input
+             * @param result the result buffer
+             * @param resultStride the stride for result
+             * storage
+             * @param extraParams the extra parameters
+             * @param n the number of elements to iterate on
+             */
+            virtual void exec(const T *dx,
+                              int xStride,
+                              T *result,
+                              int resultStride,
+                              T *extraParams,
+                              int n) {
+                if (xStride == 1 && resultStride == 1) {
+                    if(n < 8000) {
 #pragma omp simd
-				for (int i = 0; i < n; i++) {
-					result[i] = op(dx[i], extraParams);
-				}
-			}
-			else {
+                        for (int i = 0; i < n; i++) {
+                            result[i] = op(dx[i], extraParams);
+                        }
+                    }
+                    else {
 #pragma omp parallel  for
-				for (int i = 0; i < n; i++) {
-					result[i] = op(dx[i], extraParams);
-				}
-			}
+                        for (int i = 0; i < n; i++) {
+                            result[i] = op(dx[i], extraParams);
+                        }
+                    }
 
-		}
+                }
 
 
-		else {
-			if(n < 8000) {
+                else {
+                    if(n < 8000) {
 #pragma omp simd
-				for (int i = 0; i < n; i++) {
-					result[i * resultStride] = op(dx[i * xStride],
-							extraParams);
-				}
-			}
-			else {
+                        for (int i = 0; i < n; i++) {
+                            result[i * resultStride] = op(dx[i * xStride],
+                                                          extraParams);
+                        }
+                    }
+                    else {
 #pragma omp parallel for
-				for (int i = 0; i < n; i++) {
-					result[i * resultStride] = op(dx[i * xStride],
-							extraParams);
-				}
-			}
+                        for (int i = 0; i < n; i++) {
+                            result[i * resultStride] = op(dx[i * xStride],
+                                                          extraParams);
+                        }
+                    }
 
-		}
+                }
 
-	}
-	virtual inline
+            }
+            virtual inline
 #ifdef __CUDACC__
-	__host__ __device__
+            __host__ __device__
 #endif
-	void aggregateExtraParams(T **extraParamsTotal,T **extraParamsLocal) {
-		//no op aggregation needs to happen for transforms
-	}
+            void aggregateExtraParams(T **extraParamsTotal,T **extraParamsLocal) {
+                //no op aggregation needs to happen for transforms
+            }
 #ifdef __CUDACC__
-	inline __host__ __device__
+            inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	virtual ~Transform() {
-	}
+            virtual ~Transform() {
+            }
 #ifdef __CUDACC__
-	__host__ __device__
+            __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	Transform() {
-	}
+            Transform() {
+            }
 
 
-};
+        };
 
-namespace ops {
+        namespace ops {
 /**
  * abs(x)
  */
-template<typename T>
-class Abs : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Abs : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -456,67 +456,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_abs<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_abs<T>(d1);
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Abs() {
-	}
+                virtual ~Abs() {
+                }
 
-};
+            };
 
 /**
  * cei(x)
  */
-template<typename T>
-class Ceiling : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Ceiling : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -528,67 +528,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_ceil<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_ceil<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Ceiling() {
-	}
+                virtual ~Ceiling() {
+                }
 
-};
+            };
 
 /**
  * cos(x)
  */
-template<typename T>
-class Cosine : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Cosine : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -601,67 +601,67 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_cos<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_cos<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Cosine() {
-	}
+                virtual ~Cosine() {
+                }
 
-};
+            };
 
 /**
  * exp(x)
  */
-template<typename T>
-class Exp : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Exp : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -674,68 +674,68 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_exp<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_exp<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Exp() {
-	}
+                virtual ~Exp() {
+                }
 
-};
+            };
 
 /**
  * floor(x)
  */
-template<typename T>
-class HardTanhDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class HardTanhDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -747,67 +747,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return ((d1 >= -1.0 && d1 <= 1.0) ? 1.0 : 0.0);
-	}
+                T op(T d1, T *params) {
+                    return ((d1 >= -1.0 && d1 <= 1.0) ? 1.0 : 0.0);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~HardTanhDerivative() {
-	}
+                virtual ~HardTanhDerivative() {
+                }
 
-};
+            };
 
 /**
  * floor(x)
  */
-template<typename T>
-class HardTanh : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class HardTanh : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -820,68 +820,68 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return d1 < -1.0 ? -1.0 : d1 > 1.0 ? 1.0 : d1;
-	}
+                T op(T d1, T *params) {
+                    return d1 < -1.0 ? -1.0 : d1 > 1.0 ? 1.0 : d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~HardTanh() {
-	}
+                virtual ~HardTanh() {
+                }
 
-};
+            };
 
 /**
  * floor(x)
  */
-template<typename T>
-class Floor : public Transform<T> {
+            template<typename T>
+            class Floor : public Transform<T> {
 
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -893,66 +893,66 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_floor<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_floor<T>(d1);
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Floor() {
-	}
+                virtual ~Floor() {
+                }
 
-};
+            };
 
 /**
  * log(x)
  */
-template<typename T>
-class Log : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Log : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -964,67 +964,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_log<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_log<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Log() {
-	}
+                virtual ~Log() {
+                }
 
-};
+            };
 
 /**
  * -x
  */
-template<typename T>
-class Neg : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Neg : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1036,67 +1036,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return -d1;
-	}
+                T op(T d1, T *params) {
+                    return -d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Neg() {
-	}
+                virtual ~Neg() {
+                }
 
-};
+            };
 
 /**
  * pow(x,extra params [0])
  */
-template<typename T>
-class Pow : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Pow : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1108,76 +1108,76 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_pow<T>(d1, params[0]);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_pow<T>(d1, params[0]);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Pow() {
-	}
+                virtual ~Pow() {
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	Pow() {
-	}
-};
+                Pow() {
+                }
+            };
 
 /**
  * round(x)
  */
-template<typename T>
-class Round : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Round : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1189,67 +1189,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_round<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_round<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Round() {
-	}
+                virtual ~Round() {
+                }
 
-};
+            };
 
 /**
  * sigmoid(x)
  */
-template<typename T>
-class Sigmoid : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Sigmoid : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1261,68 +1261,68 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_sigmoid<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_sigmoid<T>(d1);
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Sigmoid() {
-	}
+                virtual ~Sigmoid() {
+                }
 
-};
+            };
 
 
 /**
  * sigmoid(x)
  */
-template<typename T>
-class SigmoidDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class SigmoidDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1334,69 +1334,69 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_sigmoidderivative<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_sigmoidderivative<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SigmoidDerivative() {
-	}
+                virtual ~SigmoidDerivative() {
+                }
 
-};
+            };
 
 
 /**
  * Scale to be between a
  * min and max
  */
-template<typename T>
-class SetRange : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class SetRange : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1408,77 +1408,77 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		T min = params[0];
-		T max = params[1];
-		if (d1 >= min && d1 <= max)
-			return d1;
-		if (min == 0 && max == 1) {
-			T val = 1 / (1 + nd4j::math::nd4j_exp<T>(-d1));
-			return (nd4j::math::nd4j_floor<T>(val * (max - min)) + min);
-		}
+                T op(T d1, T *params) {
+                    T min = params[0];
+                    T max = params[1];
+                    if (d1 >= min && d1 <= max)
+                        return d1;
+                    if (min == 0 && max == 1) {
+                        T val = 1 / (1 + nd4j::math::nd4j_exp<T>(-d1));
+                        return (nd4j::math::nd4j_floor<T>(val * (max - min)) + min);
+                    }
 
-		T ret = (nd4j::math::nd4j_floor<T>(d1 * (max - min)) + min);
-		return ret;
-	}
+                    T ret = (nd4j::math::nd4j_floor<T>(d1 * (max - min)) + min);
+                    return ret;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SetRange() {
-	}
+                virtual ~SetRange() {
+                }
 
-};
+            };
 
 /**
  * sin(x)
  */
-template<typename T>
-class Sin : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Sin : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1491,67 +1491,67 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_sin<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_sin<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Sin() {
-	}
+                virtual ~Sin() {
+                }
 
-};
+            };
 
 /**
  * sqrt(x)
  */
-template<typename T>
-class Sqrt : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Sqrt : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1563,67 +1563,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_sqrt<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_sqrt<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Sqrt() {
-	}
+                virtual ~Sqrt() {
+                }
 
-};
+            };
 
 /**
  * softplus(x)
  */
-template<typename T>
-class SoftPlus : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class SoftPlus : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1635,68 +1635,68 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::softplus<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::softplus<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SoftPlus() {
-	}
+                virtual ~SoftPlus() {
+                }
 
 
-};
+            };
 
 /**
  * sign(x)
  */
-template<typename T>
-class Sign : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Sign : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1708,67 +1708,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return (d1 > 0) - (d1 < 0);
-	}
+                T op(T d1, T *params) {
+                    return (d1 > 0) - (d1 < 0);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Sign() {
-	}
-};
+                virtual ~Sign() {
+                }
+            };
 
 
 /**
  * tanh(x)
  */
-template<typename T>
-class TimesOneMinus : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class TimesOneMinus : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1780,67 +1780,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return d1 * (1 - d1);
-	}
+                T op(T d1, T *params) {
+                    return d1 * (1 - d1);
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~TimesOneMinus() {
-	}
+                virtual ~TimesOneMinus() {
+                }
 
-};
+            };
 
 
 /**
  * tanh(x)
  */
-template<typename T>
-class Tanh : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Tanh : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1852,67 +1852,67 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_tanh<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_tanh<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Tanh() {
-	}
+                virtual ~Tanh() {
+                }
 
-};
+            };
 
 /**
  * tanh(x)
  */
-template<typename T>
-class TanhDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class TanhDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1925,67 +1925,67 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_tanhderivative<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_tanhderivative<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~TanhDerivative() {
-	}
+                virtual ~TanhDerivative() {
+                }
 
-};
+            };
 
 /**
  * acos(x)
  */
-template<typename T>
-class ACos : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class ACos : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -1997,142 +1997,68 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_acos<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_acos<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~ACos() {
-	}
+                virtual ~ACos() {
+                }
 
-};
-
-
-/**
- * acos(x)
- */
-template<typename T>
-class Ones : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
-
-#ifdef __CUDACC__
-	/**
-	 *
-	 */
-
-	virtual __device__ void execSpecialCuda(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {}
-#endif
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
-#ifdef __CUDACC__
-	__host__  __device__
-
-#elif defined(__GNUC__)
-
-
-#endif
-	T op(T d1, T *params) {
-		//x/(1+abs(x))
-		return 1;
-	}
-
-
-#ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~Ones() {
-	}
-
-};
+            };
 
 
 /**
  * acos(x)
  */
-template<typename T>
-class SoftSign : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Ones : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2144,70 +2070,69 @@ public:
 			T *extraParams) {}
 #endif
 
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		//x/(1+abs(x))
-		return nd4j::math::nd4j_softsign<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    //x/(1+abs(x))
+                    return 1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SoftSign() {
-	}
+                virtual ~Ones() {
+                }
 
-};
+            };
 
 
 /**
  * acos(x)
  */
-template<typename T>
-class SoftSignDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class SoftSign : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2219,69 +2144,144 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
+#ifdef __CUDACC__
+                __host__  __device__
+
+#elif defined(__GNUC__)
+
+
+#endif
+                T op(T d1, T *params) {
+                    //x/(1+abs(x))
+                    return nd4j::math::nd4j_softsign<T>(d1);
+                }
+
+
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
+
+                virtual ~SoftSign() {
+                }
+
+            };
+
+
+/**
+ * acos(x)
+ */
+            template<typename T>
+            class SoftSignDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
+#ifdef __CUDACC__
+                /**
+	 *
 	 */
-	virtual
+
+	virtual __device__ void execSpecialCuda(
+			T *dx,
+			int *xShapeBuffer,
+			T *result,
+			int *resultShapeBuffer,
+			T *extraParams) {}
+#endif
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		//x/(1+abs(x))
-		return nd4j::math::nd4j_softsignderivative<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    //x/(1+abs(x))
+                    return nd4j::math::nd4j_softsignderivative<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SoftSignDerivative() {
-	}
+                virtual ~SoftSignDerivative() {
+                }
 
-};
+            };
 
 /**
  * asin(x)
  */
-template<typename T>
-class ELU : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class ELU : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2294,215 +2294,68 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_elu<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_elu<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~ELU() {
-	}
+                virtual ~ELU() {
+                }
 
-};
-
-
-/**
- * asin(x)
- */
-template<typename T>
-class ELUDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
-
-#ifdef __CUDACC__
-	/**
-	 *
-	 */
-
-	virtual __device__ void execSpecialCuda(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {}
-#endif
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
-#ifdef __CUDACC__
-	inline __host__  __device__
-
-#elif defined(__GNUC__)
-
-
-#endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_eluderivative<T>(d1);
-	}
-
-#ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~ELUDerivative() {
-	}
-
-};
-
-
-/**
- * asin(x)
- */
-template<typename T>
-class RELU : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
-
-
-#ifdef __CUDACC__
-	/**
-	 *
-	 */
-
-	virtual __device__ void execSpecialCuda(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {}
-#endif
-
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
-#ifdef __CUDACC__
-	inline __host__  __device__
-
-#elif defined(__GNUC__)
-
-
-#endif
-	T op(T d1, T *params) {
-		return d1 < params[0] ? params[0] : d1;
-	}
-
-
-#ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~RELU() {
-	}
-
-};
+            };
 
 
 /**
  * asin(x)
  */
-template<typename T>
-class LeakyRELU : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class ELUDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2514,69 +2367,68 @@ public:
 			T *extraParams) {}
 #endif
 
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_leakyrelu<T>(d1, params[0]);
-	}
-
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_eluderivative<T>(d1);
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~LeakyRELU() {
-	}
+                virtual ~ELUDerivative() {
+                }
 
-};
+            };
 
 
 /**
  * asin(x)
  */
-template<typename T>
-class LeakyRELUDerivative : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class RELU : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2588,68 +2440,69 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return (d1 >= 0 ? 1.0 : params[0]);
-	}
+                T op(T d1, T *params) {
+                    return d1 < params[0] ? params[0] : d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~LeakyRELUDerivative() {
-	}
+                virtual ~RELU() {
+                }
 
-};
+            };
 
 
 /**
  * asin(x)
  */
-template<typename T>
-class ASin : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class LeakyRELU : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2662,67 +2515,214 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
+#ifdef __CUDACC__
+                inline __host__  __device__
+
+#elif defined(__GNUC__)
+
+
+#endif
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_leakyrelu<T>(d1, params[0]);
+                }
+
+
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
+
+                virtual ~LeakyRELU() {
+                }
+
+            };
+
+
+/**
+ * asin(x)
+ */
+            template<typename T>
+            class LeakyRELUDerivative : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
+#ifdef __CUDACC__
+                /**
+	 *
 	 */
-	virtual
+
+	virtual __device__ void execSpecialCuda(
+			T *dx,
+			int *xShapeBuffer,
+			T *result,
+			int *resultShapeBuffer,
+			T *extraParams) {}
+#endif
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_asin<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return (d1 >= 0 ? 1.0 : params[0]);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~ASin() {
-	}
+                virtual ~LeakyRELUDerivative() {
+                }
 
-};
+            };
+
+
+/**
+ * asin(x)
+ */
+            template<typename T>
+            class ASin : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
+#ifdef __CUDACC__
+                /**
+	 *
+	 */
+
+	virtual __device__ void execSpecialCuda(
+			T *dx,
+			int *xShapeBuffer,
+			T *result,
+			int *resultShapeBuffer,
+			T *extraParams) {}
+#endif
+
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
+#ifdef __CUDACC__
+                inline __host__  __device__
+
+#elif defined(__GNUC__)
+
+
+#endif
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_asin<T>(d1);
+                }
+
+
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
+
+                virtual ~ASin() {
+                }
+
+            };
 
 /**
  * atan(x)
  */
-template<typename T>
-class ATan : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class ATan : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2735,67 +2735,67 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::nd4j_atan(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::nd4j_atan(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~ATan() {
-	}
+                virtual ~ATan() {
+                }
 
-};
+            };
 
 /**
  * atan(x)
  */
-template<typename T>
-class Identity : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Identity : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2807,70 +2807,70 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return d1;
-	}
+                T op(T d1, T *params) {
+                    return d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Identity() {
-	}
+                virtual ~Identity() {
+                }
 
-};
+            };
 
 /**
  * atan(x)
  */
-template<typename T>
-class Stabilize : public Transform<T> {
-public:
-	double realMin = 1.1755e-38f;
-	double cutOff = nd4j::math::nd4j_log(realMin);
+            template<typename T>
+            class Stabilize : public Transform<T> {
+            public:
+                double realMin = 1.1755e-38f;
+                double cutOff = nd4j::math::nd4j_log(realMin);
 
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -2883,148 +2883,74 @@ public:
 #endif
 
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		T k = params[0];
-		if (d1 * k > -cutOff)
-			return (float) (-cutOff / k);
-		else if (d1 * k < cutOff)
-			return (float) (cutOff / k);
-		return d1;
-	}
+                T op(T d1, T *params) {
+                    T k = params[0];
+                    if (d1 * k > -cutOff)
+                        return (float) (-cutOff / k);
+                    else if (d1 * k < cutOff)
+                        return (float) (cutOff / k);
+                    return d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~Stabilize() {
-	}
+                virtual ~Stabilize() {
+                }
 
-};
-
-
-/**
- * atan(x)
- */
-template<typename T>
-class Step : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
-
-
-#ifdef __CUDACC__
-	/**
-	 *
-	 */
-
-	virtual __device__ void execSpecialCuda(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {}
-#endif
-
-
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
-#ifdef __CUDACC__
-	__host__  __device__
-
-#elif defined(__GNUC__)
-
-
-#endif
-	T op(T d1, T *params) {
-		return (d1 > params[0] ? 1.0 : 0.0);
-	}
-
-
-#ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~Step() {
-	}
-
-};
+            };
 
 
 /**
  * atan(x)
  */
-template<typename T>
-class OneMinus : public Transform<T> {
-public:
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {//no-op
-	}
+            template<typename T>
+            class Step : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -3036,57 +2962,131 @@ public:
 			T *extraParams) {}
 #endif
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
+#ifdef __CUDACC__
+                __host__  __device__
+
+#elif defined(__GNUC__)
+
+
+#endif
+                T op(T d1, T *params) {
+                    return (d1 > params[0] ? 1.0 : 0.0);
+                }
+
+
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
+
+                virtual ~Step() {
+                }
+
+            };
+
+
+/**
+ * atan(x)
+ */
+            template<typename T>
+            class OneMinus : public Transform<T> {
+            public:
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {//no-op
+                }
+
+#ifdef __CUDACC__
+                /**
+	 *
 	 */
-	virtual
+
+	virtual __device__ void execSpecialCuda(
+			T *dx,
+			int *xShapeBuffer,
+			T *result,
+			int *resultShapeBuffer,
+			T *extraParams) {}
+#endif
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	__host__  __device__
+                __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return 1.0 - d1;
-	}
+                T op(T d1, T *params) {
+                    return 1.0 - d1;
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~OneMinus() {
-	}
+                virtual ~OneMinus() {
+                }
 
-};
+            };
 
 
-template<typename T>
-class Im2col : public Transform<T> {
-public:
+            template<typename T>
+            class Im2col : public Transform<T> {
+            public:
 
-	virtual
+                virtual
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 #endif
-	int outSize(int size, int k, int s, int p, bool coverAll) {
-		if (coverAll)
-			return (size + p * 2 - k + s - 1) / s + 1;
-		else
-			return (size + p * 2 - k) / s + 1;
-	}
+                int outSize(int size, int k, int s, int p, bool coverAll) {
+                    if (coverAll)
+                        return (size + p * 2 - k + s - 1) / s + 1;
+                    else
+                        return (size + p * 2 - k) / s + 1;
+                }
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 * Based on:  https://github.com/pjreddie/darknet/blob/master/src/im2col_kernels.cu
 	 */
 
@@ -3163,251 +3163,251 @@ public:
 	}
 #endif
 
-	/**
-	 * CPU operation execution
-	 * @param dx the input data
-	 * @param xStride the stride to iterate over
-	 * the x input
-	 * @param y the y data
-	 * @param yStride the stride to iterate
-	 * over the y buffer
-	 * @param result the buffer
-	 * to store the result in
-	 * @param resultStride the stride for the buffer
-	 * @param extraParams the extra parameters for the transform
-	 * @param n the length of the input
-	 */
-	virtual void execSpecial(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {
-		/*kernel[0], kernel[1], stride[0], stride[1], padding[0], padding[1], 0, false*/
-		int kernelWidth = (int) extraParams[0];
-		int kernelHeight = (int) extraParams[1];
-		int strideX = (int) extraParams[2];
-		int strideY = (int) extraParams[3];
-		int padWidth = (int) extraParams[4];
-		int padHeight = (int) extraParams[5];
-		bool coverAll = extraParams[6] > 0.0;
+                /**
+                 * CPU operation execution
+                 * @param dx the input data
+                 * @param xStride the stride to iterate over
+                 * the x input
+                 * @param y the y data
+                 * @param yStride the stride to iterate
+                 * over the y buffer
+                 * @param result the buffer
+                 * to store the result in
+                 * @param resultStride the stride for the buffer
+                 * @param extraParams the extra parameters for the transform
+                 * @param n the length of the input
+                 */
+                virtual void execSpecial(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) override {
+                    /*kernel[0], kernel[1], stride[0], stride[1], padding[0], padding[1], 0, false*/
+                    int kernelWidth = (int) extraParams[0];
+                    int kernelHeight = (int) extraParams[1];
+                    int strideX = (int) extraParams[2];
+                    int strideY = (int) extraParams[3];
+                    int padWidth = (int) extraParams[4];
+                    int padHeight = (int) extraParams[5];
+                    bool coverAll = extraParams[6] > 0.0;
 
-		int outArrayOffset = 0;
-		int *outShape = shape::shapeOf(resultShapeBuffer);
-		int *outStride = shape::stride(resultShapeBuffer);
+                    int outArrayOffset = 0;
+                    int *outShape = shape::shapeOf(resultShapeBuffer);
+                    int *outStride = shape::stride(resultShapeBuffer);
 
-		int inArrayOffset = 0;
-		int *inShape = shape::shapeOf(xShapeBuffer);
-		int *inStride = shape::stride(xShapeBuffer);
-
-
-		int exampleFrom = 0;
-		int exampleTo = inShape[0];
-		int depthFrom = 0;
-		int depthTo = inShape[1];
-		int yOutFrom = 0;
-		int yOutTo = this->outSize(inShape[2], kernelHeight, strideY, padHeight, coverAll);
-		int xOutFrom = 0;
-		int xOutTo = this->outSize(inShape[3], kernelWidth, strideX, padWidth, coverAll);
+                    int inArrayOffset = 0;
+                    const int *inShape = shape::shapeOf(xShapeBuffer);
+                    const int *inStride = shape::stride(xShapeBuffer);
 
 
-		int *outIndices = new int[6];
-		int *inIndices = new int[4];
-
-		int inStride2 = inStride[2];
-		int inStride3 = inStride[3];
-		int outStride2 = outStride[2];
-		int outStride3 = outStride[3];
-		int inShape2 = inShape[2];
-		int inShape3 = inShape[3];
-
-		const bool padding = padHeight > 0 || padWidth > 0;
-
-		T *dIn = dx;
-		T *dOut = result;
-		//#pragma omp parallel for collapse(2)
-		for (int ex = exampleFrom; ex < exampleTo; ex++) {
-			for (int d = depthFrom; d < depthTo; d++) {
-				inIndices[0] = ex;
-				inIndices[1] = d;
-				outIndices[0] = ex;
-				outIndices[1] = d;
-
-				for (int x = xOutFrom; x < xOutTo; x++) {  //Along width
-					for (int y = yOutFrom; y < yOutTo; y++) {  //along height
-						outIndices[4] = y;
-						outIndices[5] = x;
-						int baseOffsetOut = this->getOffsetUnsafe6(outArrayOffset, outShape, outStride,
-								outIndices);
-
-						if (padding) {
-							int i = y * strideY -
-									padHeight;    //index along height of first element of patch in original img
-							int j = x * strideX -
-									padWidth;     //index along width of first element in patch in original img
-							inIndices[2] = i;   //along height
-							inIndices[3] = j;   //along width
-
-							int baseOffsetIn = this->getOffsetUnsafe4(inArrayOffset, inShape, inStride,
-									inIndices);
-							if (outStride2 <= outStride3) {
-								//Want dimension 2 (along height) in inner loop for cache reasons
-								for (int patchX = 0; patchX < kernelWidth; patchX++) {
-									int outBufferIdxX = baseOffsetOut + patchX * outStride3;
-									int inBufferIdxX = baseOffsetIn + patchX * inStride3;
-									for (int patchY = 0; patchY < kernelHeight; patchY++) {
-										if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape2 ||
-												j + patchX >= inShape3)
-											dOut[outBufferIdxX + patchY * outStride2] = 0; //padding
-											else {
-												dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX +
-												                                                patchY *
-												                                                inStride2];
-											}
-									}
-								}
-							} else {
-								//Want dimension 3 in inner loop for cache reasons
-								for (int patchY = 0; patchY < kernelHeight; patchY++) {
-									int outBufferIdxY = baseOffsetOut + patchY * outStride2;
-									int inBufferIdxY = baseOffsetIn + patchY * inStride2;
-									for (int patchX = 0; patchX < kernelWidth; patchX++) {
-										if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape[2] ||
-												j + patchX >= inShape[3])
-											dOut[outBufferIdxY + patchX * outStride3] = 0.0; //padding
-											else {
-												dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY +
-												                                                patchX *
-												                                                inStride3];
-											}
-									}
-								}
-							}
-						} else {
-							//No padding
-							int i = y *
-									strideY;    //index along height of first element of patch in original img
-							int j = x *
-									strideX;     //index along width of first element in patch in original img
-							inIndices[2] = i;   //along height
-							inIndices[3] = j;   //along width
-
-							int baseOffsetIn = this->getOffsetUnsafe4(inArrayOffset, inShape, inStride,
-									inIndices);
-							if (outStride2 <= outStride3) {
-								//Want dimension 2 (along height) in inner loop for cache reasons
-								for (int patchX = 0; patchX < kernelWidth; patchX++) {
-									int outBufferIdxX = baseOffsetOut + patchX * outStride3;
-									int inBufferIdxX = baseOffsetIn + patchX * inStride3;
-									for (int patchY = 0; patchY < kernelHeight; patchY++) {
-										dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX +
-										                                                patchY * inStride2];
-									}
-								}
-							} else {
-								//Want dimension 3 in inner loop for cache reasons
-								for (int patchY = 0; patchY < kernelHeight; patchY++) {
-									int outBufferIdxY = baseOffsetOut + patchY * outStride2;
-									int inBufferIdxY = baseOffsetIn + patchY * inStride2;
-									for (int patchX = 0; patchX < kernelWidth; patchX++) {
-										dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY +
-										                                                patchX * inStride3];
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		delete[] inIndices;
-		delete[] outIndices;
-
-	}
+                    int exampleFrom = 0;
+                    int exampleTo = inShape[0];
+                    int depthFrom = 0;
+                    int depthTo = inShape[1];
+                    int yOutFrom = 0;
+                    int yOutTo = this->outSize(inShape[2], kernelHeight, strideY, padHeight, coverAll);
+                    int xOutFrom = 0;
+                    int xOutTo = this->outSize(inShape[3], kernelWidth, strideX, padWidth, coverAll);
 
 
-	virtual
+                    int *outIndices = new int[6];
+                    int *inIndices = new int[4];
+
+                    int inStride2 = inStride[2];
+                    int inStride3 = inStride[3];
+                    int outStride2 = outStride[2];
+                    int outStride3 = outStride[3];
+                    int inShape2 = inShape[2];
+                    int inShape3 = inShape[3];
+
+                    const bool padding = padHeight > 0 || padWidth > 0;
+
+                    T *dIn = dx;
+                    T *dOut = result;
+                    //#pragma omp parallel for collapse(2)
+                    for (int ex = exampleFrom; ex < exampleTo; ex++) {
+                        for (int d = depthFrom; d < depthTo; d++) {
+                            inIndices[0] = ex;
+                            inIndices[1] = d;
+                            outIndices[0] = ex;
+                            outIndices[1] = d;
+
+                            for (int x = xOutFrom; x < xOutTo; x++) {  //Along width
+                                for (int y = yOutFrom; y < yOutTo; y++) {  //along height
+                                    outIndices[4] = y;
+                                    outIndices[5] = x;
+                                    int baseOffsetOut = this->getOffsetUnsafe6(outArrayOffset, outShape, outStride,
+                                                                               outIndices);
+
+                                    if (padding) {
+                                        int i = y * strideY -
+                                                padHeight;    //index along height of first element of patch in original img
+                                        int j = x * strideX -
+                                                padWidth;     //index along width of first element in patch in original img
+                                        inIndices[2] = i;   //along height
+                                        inIndices[3] = j;   //along width
+
+                                        int baseOffsetIn = this->getOffsetUnsafe4(inArrayOffset, inShape, inStride,
+                                                                                  inIndices);
+                                        if (outStride2 <= outStride3) {
+                                            //Want dimension 2 (along height) in inner loop for cache reasons
+                                            for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                                int outBufferIdxX = baseOffsetOut + patchX * outStride3;
+                                                int inBufferIdxX = baseOffsetIn + patchX * inStride3;
+                                                for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                                    if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape2 ||
+                                                        j + patchX >= inShape3)
+                                                        dOut[outBufferIdxX + patchY * outStride2] = 0; //padding
+                                                    else {
+                                                        dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX +
+                                                                                                        patchY *
+                                                                                                        inStride2];
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            //Want dimension 3 in inner loop for cache reasons
+                                            for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                                int outBufferIdxY = baseOffsetOut + patchY * outStride2;
+                                                int inBufferIdxY = baseOffsetIn + patchY * inStride2;
+                                                for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                                    if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape[2] ||
+                                                        j + patchX >= inShape[3])
+                                                        dOut[outBufferIdxY + patchX * outStride3] = 0.0; //padding
+                                                    else {
+                                                        dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY +
+                                                                                                        patchX *
+                                                                                                        inStride3];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        //No padding
+                                        int i = y *
+                                                strideY;    //index along height of first element of patch in original img
+                                        int j = x *
+                                                strideX;     //index along width of first element in patch in original img
+                                        inIndices[2] = i;   //along height
+                                        inIndices[3] = j;   //along width
+
+                                        int baseOffsetIn = this->getOffsetUnsafe4(inArrayOffset, inShape, inStride,
+                                                                                  inIndices);
+                                        if (outStride2 <= outStride3) {
+                                            //Want dimension 2 (along height) in inner loop for cache reasons
+                                            for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                                int outBufferIdxX = baseOffsetOut + patchX * outStride3;
+                                                int inBufferIdxX = baseOffsetIn + patchX * inStride3;
+                                                for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                                    dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX +
+                                                                                                    patchY * inStride2];
+                                                }
+                                            }
+                                        } else {
+                                            //Want dimension 3 in inner loop for cache reasons
+                                            for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                                int outBufferIdxY = baseOffsetOut + patchY * outStride2;
+                                                int inBufferIdxY = baseOffsetIn + patchY * inStride2;
+                                                for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                                    dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY +
+                                                                                                    patchX * inStride3];
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    delete[] inIndices;
+                    delete[] outIndices;
+
+                }
+
+
+                virtual
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 #endif
-	T op(T d1, T *params) {
-		return d1;
-	}
+                T op(T d1, T *params) {
+                    return d1;
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~Im2col() {
-	}
-
-#ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	Im2col() {
-		this->requiresSpecial = true;
-	}
+                virtual ~Im2col() {
+                }
 
-
-	/** Calculate buffer offset (like Shape.getOffset) without checking on input for negative indices etc
-	 *  normally negative indices are bad, OK here because of other checks on input indices
-	 *  Uses unrolled loop specifically for length 4
-	 */
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	int getOffsetUnsafe4(int baseOffset, int *shape, int *stride, int *indices) {
-		int offset = baseOffset;
-		if (shape[0] != 1) offset += indices[0] * stride[0];
-		if (shape[1] != 1) offset += indices[1] * stride[1];
-		if (shape[2] != 1) offset += indices[2] * stride[2];
-		if (shape[3] != 1) offset += indices[3] * stride[3];
-		return offset;
-	}
+
+                Im2col() {
+                    this->requiresSpecial = true;
+                }
 
 
-	/**
-	 * A version of Shape.getOffset without checking on input for negative indices etc
-	 * normally negative indices are bad, OK here because of other checks on input indices
-	 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
-	 */
+                /** Calculate buffer offset (like Shape.getOffset) without checking on input for negative indices etc
+                 *  normally negative indices are bad, OK here because of other checks on input indices
+                 *  Uses unrolled loop specifically for length 4
+                 */
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
-		int offset = baseOffset;
-		if (shape[0] != 1) offset += indices[0] * stride[0];
-		if (shape[1] != 1) offset += indices[1] * stride[1];
-		if (shape[4] != 1) offset += indices[4] * stride[4];
-		if (shape[5] != 1) offset += indices[5] * stride[5];
-		return offset;
-	}
+                int getOffsetUnsafe4(int baseOffset, const int *shape, const int *stride, const int *indices) {
+                    int offset = baseOffset;
+                    if (shape[0] != 1) offset += indices[0] * stride[0];
+                    if (shape[1] != 1) offset += indices[1] * stride[1];
+                    if (shape[2] != 1) offset += indices[2] * stride[2];
+                    if (shape[3] != 1) offset += indices[3] * stride[3];
+                    return offset;
+                }
 
-};
 
-template<typename T>
-class Col2Im : public Transform<T> {
+                /**
+                 * A version of Shape.getOffset without checking on input for negative indices etc
+                 * normally negative indices are bad, OK here because of other checks on input indices
+                 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
+                 */
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
 
-public:
+
+#endif
+                int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
+                    int offset = baseOffset;
+                    if (shape[0] != 1) offset += indices[0] * stride[0];
+                    if (shape[1] != 1) offset += indices[1] * stride[1];
+                    if (shape[4] != 1) offset += indices[4] * stride[4];
+                    if (shape[5] != 1) offset += indices[5] * stride[5];
+                    return offset;
+                }
+
+            };
+
+            template<typename T>
+            class Col2Im : public Transform<T> {
+
+            public:
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 * https://github.com/pjreddie/darknet/blob/master/src/col2im_kernels.cu
 	 */
 
@@ -3472,7 +3472,7 @@ public:
 	}
 #endif
 
-	/**
+         /**
 	 * CPU operation execution
 	 * @param dx the input data
 	 * @param xStride the stride to iterate over
@@ -3488,13 +3488,13 @@ public:
 	 */
 	virtual void execSpecial(
 			T *dx,
-			int *xShapeBuffer,
+                        int *xShapeBuffer,
 			T *result,
 			int *resultShapeBuffer,
-			T *extraParams) {
+                        T *extraParams) override {
 		int inOffset = 0;
-		int *inShape = shape::shapeOf(xShapeBuffer);
-		int *inStride = shape::stride(xShapeBuffer);
+                const int *inShape = shape::shapeOf(xShapeBuffer);
+                const int *inStride = shape::stride(xShapeBuffer);
 
 		int kernelHeight = inShape[2];
 		int kernelWidth = inShape[3];
@@ -3514,8 +3514,8 @@ public:
 		int *outStride = shape::stride(resultShapeBuffer);
 
 
-		int *outIndices = new int[4];
-		int *inIndices = new int[6];
+                Nd4jIndex *outIndices = new Nd4jIndex[4];
+                Nd4jIndex *inIndices = new Nd4jIndex[6];
 
 		int inStride2 = inStride[2];
 		int inStride3 = inStride[3];
@@ -3622,91 +3622,89 @@ public:
 
 		delete[] outIndices;
 		delete[] inIndices;
-	}
+            }
 
-
-	virtual
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 #endif
-	T op(T d1, T *params) {
-		return d1;
-	}
+                T op(T d1, T *params) {
+                    return d1;
+                }
 
 #ifdef __CUDACC__
-	inline __host__ __device__
-#elif defined(__GNUC__)
-
-
-#endif
-
-	virtual ~Col2Im() {
-	}
-
-#ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	Col2Im() {
-		this->requiresSpecial = true;
-	}
+                virtual ~Col2Im() {
+                }
 
-
-	/** Calculate buffer offset (like Shape.getOffset) without checking on input for negative indices etc
-	 *  normally negative indices are bad, OK here because of other checks on input indices
-	 *  Uses unrolled loop specifically for length 4
-	 */
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	int getOffsetUnsafe4(int baseOffset, int *shape, int *stride, int *indices) {
-		int offset = baseOffset;
-		if (shape[0] != 1) offset += indices[0] * stride[0];
-		if (shape[1] != 1) offset += indices[1] * stride[1];
-		if (shape[2] != 1) offset += indices[2] * stride[2];
-		if (shape[3] != 1) offset += indices[3] * stride[3];
-		return offset;
-	}
 
-	/** A version of Shape.getOffset without checking on input for negative indices etc
-	 * normally negative indices are bad, OK here because of other checks on input indices
-	 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
-	 */
+                Col2Im() {
+                    this->requiresSpecial = true;
+                }
+
+
+                /** Calculate buffer offset (like Shape.getOffset) without checking on input for negative indices etc
+                 *  normally negative indices are bad, OK here because of other checks on input indices
+                 *  Uses unrolled loop specifically for length 4
+                 */
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
-		int offset = baseOffset;
-		if (shape[0] != 1) offset += indices[0] * stride[0];
-		if (shape[1] != 1) offset += indices[1] * stride[1];
-		if (shape[4] != 1) offset += indices[4] * stride[4];
-		if (shape[5] != 1) offset += indices[5] * stride[5];
-		return offset;
-	}
+                int getOffsetUnsafe4(int baseOffset, const int *shape, const int *stride, const Nd4jIndex *indices) {
+                    int offset = baseOffset;
+                    if (shape[0] != 1) offset += indices[0] * stride[0];
+                    if (shape[1] != 1) offset += indices[1] * stride[1];
+                    if (shape[2] != 1) offset += indices[2] * stride[2];
+                    if (shape[3] != 1) offset += indices[3] * stride[3];
+                    return offset;
+                }
 
-};
+                /** A version of Shape.getOffset without checking on input for negative indices etc
+                 * normally negative indices are bad, OK here because of other checks on input indices
+                 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
+                 */
+#ifdef __CUDACC__
+                inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
+                int getOffsetUnsafe6(int baseOffset, const int *shape, const int *stride, const Nd4jIndex *indices) {
+                    int offset = baseOffset;
+                    if (shape[0] != 1) offset += indices[0] * stride[0];
+                    if (shape[1] != 1) offset += indices[1] * stride[1];
+                    if (shape[4] != 1) offset += indices[4] * stride[4];
+                    if (shape[5] != 1) offset += indices[5] * stride[5];
+                    return offset;
+                }
+
+            };
 
 
 /**
  * softmax(x)
  */
-template<typename T>
-class SoftMax : public Transform<T> {
-public:
+            template<typename T>
+            class SoftMax : public Transform<T> {
+            public:
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -3832,12 +3830,12 @@ public:
 	 */
 	virtual void execSpecial(
 			T *dx,
-			int *xShapeBuffer,
+                        int *xShapeBuffer,
 			T *result,
 			int *resultShapeBuffer,
-			T *extraParams) {
+                        T *extraParams) override {
 		if (shape::isMatrix(xShapeBuffer)) {
-                        int *shape = shape::shapeOf(xShapeBuffer);
+                        const int *shape = shape::shapeOf(xShapeBuffer);
 
 			//iterate along rows
 			int dimension[1] = {0};
@@ -3950,46 +3948,46 @@ public:
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::softplus<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::softplus<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SoftMax() {
-	}
+                virtual ~SoftMax() {
+                }
 
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
 
-	SoftMax() {
-		this->requiresSpecial = true;
-	}
+                SoftMax() {
+                    this->requiresSpecial = true;
+                }
 
 
-};
+            };
 
 
 /**
  * softmax(x)
  */
-template<typename T>
-class LogSoftMax : public Transform<T> {
-public:
+            template<typename T>
+            class LogSoftMax : public Transform<T> {
+            public:
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -4106,12 +4104,12 @@ public:
 	 */
 	virtual void execSpecial(
 			T *dx,
-			int *xShapeBuffer,
+                        int *xShapeBuffer,
 			T *result,
 			int *resultShapeBuffer,
-			T *extraParams) {
+                        T *extraParams) override {
 		if (shape::isMatrix(xShapeBuffer, 2)) {
-			int *shape = shape::shapeOf(xShapeBuffer);
+                        const int *shape = shape::shapeOf(xShapeBuffer);
 			//iterate along rows
 			int dimension[1] = {0};
 			int maxDimension[1] = {1};
@@ -4162,122 +4160,122 @@ public:
 			int length = shape::length(xShapeBuffer);
 			if (elementWiseStride == 1) {
 #pragma omp parallel for shared(max)
-				for (int i = 0; i < length; i++) {
+                            for (int i = 0; i < length; i++) {
 #pragma omp critical
-					{
-						max = nd4j::math::nd4j_max<T>(max, result[i]);
+                                {
+                                    max = nd4j::math::nd4j_max<T>(max, result[i]);
 
-					}
-				}
+                                }
+                            }
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] -= max;
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] -= max;
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] = nd4j::math::nd4j_exp<T>(result[i]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] = nd4j::math::nd4j_exp<T>(result[i]);
+                            }
 
 #pragma omp parallel for shared(sum)
-				for (int i = 0; i < length; i++) {
+                            for (int i = 0; i < length; i++) {
 #pragma omp critical
-					{
-						sum += result[i];
+                                {
+                                    sum += result[i];
 
-					}
-				}
-
-#pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] /= sum;
-					result[i] = nd4j::math::nd4j_log<T>(result[i]);
-				}
-
-			}
-			else {
-
-				for (int i = 0; i < length; i++) {
-					max = nd4j::math::nd4j_max<T>(max, result[i * elementWiseStride]);
-				}
-#pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] -= max;
-				}
+                                }
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] = nd4j::math::nd4j_exp<T>(result[i * elementWiseStride]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] /= sum;
+                                result[i] = nd4j::math::nd4j_log<T>(result[i]);
+                            }
 
-				for (int i = 0; i < length; i++) {
-					sum += result[i * elementWiseStride];
+                        }
+                        else {
 
-				}
+                            for (int i = 0; i < length; i++) {
+                                max = nd4j::math::nd4j_max<T>(max, result[i * elementWiseStride]);
+                            }
+#pragma omp parallel for
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] -= max;
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] /= sum;
-					result[i * elementWiseStride] = nd4j::math::nd4j_log<T>(result[i * elementWiseStride]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] = nd4j::math::nd4j_exp<T>(result[i * elementWiseStride]);
+                            }
 
-			}
-		}
-	}
+                            for (int i = 0; i < length; i++) {
+                                sum += result[i * elementWiseStride];
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                            }
+
+#pragma omp parallel for
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] /= sum;
+                                result[i * elementWiseStride] = nd4j::math::nd4j_log<T>(result[i * elementWiseStride]);
+                            }
+
+                        }
+                    }
+                }
+
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::softplus<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::softplus<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~LogSoftMax() {
-	}
+                virtual ~LogSoftMax() {
+                }
 
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
 
-	LogSoftMax() {
-		this->requiresSpecial = true;
-	}
+                LogSoftMax() {
+                    this->requiresSpecial = true;
+                }
 
 
-};
+            };
 
 
 /**
  * softmax(x)
  */
-template<typename T>
-class SoftMaxDerivative : public Transform<T> {
-public:
+            template<typename T>
+            class SoftMaxDerivative : public Transform<T> {
+            public:
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -4416,12 +4414,12 @@ public:
 	 */
 	virtual void execSpecial(
 			T *dx,
-			int *xShapeBuffer,
+                        int *xShapeBuffer,
 			T *result,
 			int *resultShapeBuffer,
-			T *extraParams) {
+                        T *extraParams) override {
 		if (shape::isMatrix(xShapeBuffer, 2)) {
-                        int *shape = shape::shapeOf(xShapeBuffer);
+                        const int *shape = shape::shapeOf(xShapeBuffer);
 
 			int resultEleStide = shape::elementWiseStride(resultShapeBuffer);
 
@@ -4459,157 +4457,157 @@ public:
 			if (resultEleStide >= 1) {
 				if (resultEleStide == 1) {
 #pragma omp parallel for
-					for (int i = 0; i < len; i++) {
-						result[i] = result[i] * (1 - result[i]);
-					}
+                                for (int i = 0; i < len; i++) {
+                                    result[i] = result[i] * (1 - result[i]);
+                                }
 
-				}
-				else {
+                            }
+                            else {
 #pragma omp parallel for
-					for (int i = 0; i < len; i++) {
-						result[i * resultEleStide] = result[i * resultEleStide] * (1 - result[i * resultEleStide]);
-					}
+                                for (int i = 0; i < len; i++) {
+                                    result[i * resultEleStide] = result[i * resultEleStide] * (1 - result[i * resultEleStide]);
+                                }
 
-				}
-			}
+                            }
+                        }
 
-			else {
-				printf("Non element wise stride not supported right now\n");
-			}
+                        else {
+                            printf("Non element wise stride not supported right now\n");
+                        }
 
 
-			delete exp;
-			delete sub;
-			delete sum;
-			delete max;
-			delete div;
+                        delete exp;
+                        delete sub;
+                        delete sum;
+                        delete max;
+                        delete div;
 
-			delete[] maxResultShapeBuffer;
-		}
-		else if (shape::isVector(xShapeBuffer, 2)) {
-			T max = 0;
-			T sum = 0;
+                        delete[] maxResultShapeBuffer;
+                    }
+                    else if (shape::isVector(xShapeBuffer, 2)) {
+                        T max = 0;
+                        T sum = 0;
 
-			int elementWiseStride = shape::elementWiseStride(xShapeBuffer);
-			int length = shape::length(xShapeBuffer);
-			if (elementWiseStride == 1) {
+                        int elementWiseStride = shape::elementWiseStride(xShapeBuffer);
+                        int length = shape::length(xShapeBuffer);
+                        if (elementWiseStride == 1) {
 #pragma omp parallel for shared(max)
-				for (int i = 0; i < length; i++) {
-					max = nd4j::math::nd4j_max<T>(max, result[i]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                max = nd4j::math::nd4j_max<T>(max, result[i]);
+                            }
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] -= max;
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] -= max;
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] = nd4j::math::nd4j_exp<T>(result[i]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] = nd4j::math::nd4j_exp<T>(result[i]);
+                            }
 
 #pragma omp parallel for shared(sum)
-				for (int i = 0; i < length; i++) {
-					sum += result[i];
-				}
+                            for (int i = 0; i < length; i++) {
+                                sum += result[i];
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i] /= sum;
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i] /= sum;
+                            }
 
-			}
-			else {
+                        }
+                        else {
 
 #pragma omp parallel for shared(max)
-				for (int i = 0; i < length; i++) {
+                            for (int i = 0; i < length; i++) {
 #pragma omp critical
-					{
-						max = nd4j::math::nd4j_max<T>(max, result[i * elementWiseStride]);
+                                {
+                                    max = nd4j::math::nd4j_max<T>(max, result[i * elementWiseStride]);
 
-					}
-				}
+                                }
+                            }
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] -= max;
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] -= max;
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] = nd4j::math::nd4j_exp<T>(result[i * elementWiseStride]);
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] = nd4j::math::nd4j_exp<T>(result[i * elementWiseStride]);
+                            }
 
 #pragma omp parallel for shared(sum)
-				for (int i = 0; i < length; i++) {
+                            for (int i = 0; i < length; i++) {
 #pragma omp critical
-					{
-						sum += result[i * elementWiseStride];
-					}
-				}
+                                {
+                                    sum += result[i * elementWiseStride];
+                                }
+                            }
 
 #pragma omp parallel for
-				for (int i = 0; i < length; i++) {
-					result[i * elementWiseStride] /= sum;
-				}
+                            for (int i = 0; i < length; i++) {
+                                result[i * elementWiseStride] /= sum;
+                            }
 
-			}
-		}
-	}
+                        }
+                    }
+                }
 
-	/**
-	 * The op for transforms
-	 * @param d1
-	 * @param params
-	 * @return
-	 */
-	virtual
+                /**
+                 * The op for transforms
+                 * @param d1
+                 * @param params
+                 * @return
+                 */
+                virtual
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::softplus<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::softplus<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
 
-	virtual ~SoftMaxDerivative() {
-	}
+                virtual ~SoftMaxDerivative() {
+                }
 
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
 
-	SoftMaxDerivative() {
-		this->requiresSpecial = true;
-	}
+                SoftMaxDerivative() {
+                    this->requiresSpecial = true;
+                }
 
 
-};
+            };
 
 
 /**
  * softmax(x)
  */
-template<typename T>
-class IsMax : public Transform<T> {
-private:
+            template<typename T>
+            class IsMax : public Transform<T> {
+            private:
 
 #ifdef __CUDACC__
 
-	inline  __device__ void doAllCuda(
+                inline  __device__ void doAllCuda(
 			T *dx,
 			int *xShapeBuffer,
 			T *result,
@@ -4654,213 +4652,227 @@ private:
 #endif
 
 #ifdef __CUDACC__
-	inline __host__
+                inline __host__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	void doAll(
-			T *dx,
-			int *xShapeBuffer,
-			T *result,
-			int *resultShapeBuffer,
-			T *extraParams) {
-		int length = shape::length(xShapeBuffer);
-		if (dx == result) {
-			int eleStride = shape::elementWiseStride(xShapeBuffer);
-			if (eleStride == 1) {
-				int maxIdx = 0;
-				T currMax = dx[0];
-				if (length < 8000) {
+                void doAll(
+                        T *dx,
+                        int *xShapeBuffer,
+                        T *result,
+                        int *resultShapeBuffer,
+                        T *extraParams) {
+                    int length = shape::length(xShapeBuffer);
+                    if (dx == result && shape::order(xShapeBuffer) == 'c') {
+                        int eleStride = shape::elementWiseStride(xShapeBuffer);
+                        if (eleStride == 1) {
+                            int maxIdx = 0;
+                            T currMax = dx[0];
+                            if (length < 8000) {
 #pragma omp simd
-					for (int i = 0; i < length; i++) {
-						if (currMax < dx[i]) {
-							currMax = dx[i];
-							maxIdx = i;
-						}
+                                for (int i = 0; i < length; i++) {
+                                    if (currMax < dx[i]) {
+                                        currMax = dx[i];
+                                        maxIdx = i;
+                                    }
 
-						dx[i] = 0.0;
+                                    dx[i] = 0.0;
 
-					}
-				}
-				else {
+                                }
+                            }
+                            else {
 #pragma omp parallel for shared(maxIdx,currMax)
-					for (int i = 0; i < length; i++) {
-						if (currMax < dx[i]) {
-							currMax = dx[i];
-							maxIdx = i;
-						}
+                                for (int i = 0; i < length; i++) {
+                                    if (currMax < dx[i]) {
+                                        currMax = dx[i];
+                                        maxIdx = i;
+                                    }
 
-						result[i] = 0.0;
+                                    result[i] = 0.0;
 
-					}
-				}
+                                }
+                            }
 
-				result[maxIdx] = 1.0;
+                            result[maxIdx] = 1.0;
 
 
-			}
-			else {
-				int maxIdx = 0;
-				T currMax = dx[0];
-				if (length < 8000) {
+                        }
+                        else {
+                            int maxIdx = 0;
+                            T currMax = dx[0];
+                            if (length < 8000) {
 #pragma omp simd
-					for (int i = 0; i < length; i++) {
-						if (currMax < dx[i]) {
-							currMax = dx[i];
-							maxIdx = i;
-						}
+                                for (int i = 0; i < length; i++) {
+                                    if (currMax < dx[i]) {
+                                        currMax = dx[i];
+                                        maxIdx = i;
+                                    }
 
-						dx[i * eleStride] = 0.0;
+                                    dx[i * eleStride] = 0.0;
 
-					}
+                                }
 
-					dx[maxIdx * eleStride] = 1.0;
-				}
-				else {
+                                dx[maxIdx * eleStride] = 1.0;
+                            }
+                            else {
 #pragma omp parallel for shared(maxIdx,currMax)
-					for (int i = 0; i < length; i++) {
-						if (currMax < dx[i * eleStride]) {
-							currMax = dx[i * eleStride];
-							maxIdx = i;
-						}
-						dx[i * eleStride] = 0.0;
+                                for (int i = 0; i < length; i++) {
+                                    if (currMax < dx[i * eleStride]) {
+                                        currMax = dx[i * eleStride];
+                                        maxIdx = i;
+                                    }
+                                    dx[i * eleStride] = 0.0;
 
-					}
-				}
+                                }
+                            }
 
-				dx[maxIdx * eleStride] = 1.0;
+                            dx[maxIdx * eleStride] = 1.0;
 
-			}
-		}
-		else {
-			int eleStride = shape::elementWiseStride(xShapeBuffer);
-			int resultEleStride = shape::elementWiseStride(resultShapeBuffer);
-			char xOrder = shape::order(xShapeBuffer);
-			char resultOrder = shape::order(resultShapeBuffer);
-			if (xOrder == resultOrder) {
-				if (eleStride == 1 && resultEleStride == 1) {
-					if (length < 8000) {
-						int maxIdx = 0;
-						T currMax = dx[0];
+                        }
+                    }
+                    else {
+                        int eleStride = shape::elementWiseStride(xShapeBuffer);
+                        int resultEleStride = shape::elementWiseStride(resultShapeBuffer);
+                        char xOrder = shape::order(xShapeBuffer);
+                        char resultOrder = shape::order(resultShapeBuffer);
+                        if (xOrder == resultOrder && xOrder == 'c') {
+                            if (eleStride == 1 && resultEleStride == 1) {
+                                if (length < 8000) {
+                                    int maxIdx = 0;
+                                    T currMax = dx[0];
 #pragma omp simd
-						for (int i = 0; i < length; i++) {
-							if (currMax < dx[i]) {
-								currMax = dx[i];
-								maxIdx = i;
-							}
-							result[i] = 0.0;
+                                    for (int i = 0; i < length; i++) {
+                                        if (currMax < dx[i]) {
+                                            currMax = dx[i];
+                                            maxIdx = i;
+                                        }
 
-						}
+                                        result[i] = 0.0;
 
-						result[maxIdx] = 1.0;
+                                    }
 
-					}
-					else {
-						int maxIdx = 0;
-						T currMax = dx[0];
+                                    result[maxIdx] = 1.0;
+
+                                }
+                                else {
+                                    int maxIdx = 0;
+                                    T currMax = dx[0];
 #pragma omp parallel for shared(maxIdx,currMax)
-						for (int i = 0; i < length; i++) {
-							if (currMax < dx[i]) {
-								currMax = dx[i];
-								maxIdx = i;
-							}
-							result[i] = 0.0;
+                                    for (int i = 0; i < length; i++) {
+                                        if (currMax < dx[i]) {
+                                            currMax = dx[i];
+                                            maxIdx = i;
+                                        }
+                                        result[i] = 0.0;
 
-						}
+                                    }
 
-						result[maxIdx] = 1.0;
-					}
+                                    result[maxIdx] = 1.0;
+                                }
 
-				}
-				else {
-					if (length < 8000) {
-						int maxIdx = 0;
-						T currMax = dx[0];
+                            }
+                            else {
+                                if (length < 8000) {
+                                    int maxIdx = 0;
+                                    T currMax = dx[0];
 #pragma omp simd
-						for (int i = 0; i < length; i++) {
-							result[i * resultEleStride] = 0.0;
-							if (currMax < dx[i * eleStride]) {
-								currMax = dx[i * eleStride];
-								maxIdx = i;
-							}
-						}
+                                    for (int i = 0; i < length; i++) {
+                                        result[i * resultEleStride] = 0.0;
+                                        if (currMax < dx[i * eleStride]) {
+                                            currMax = dx[i * eleStride];
+                                            maxIdx = i;
+                                        }
+                                    }
 
-						result[maxIdx * resultEleStride] = 1.0;
+                                    result[maxIdx * resultEleStride] = 1.0;
 
-					}
-					else {
-						int maxIdx = 0;
-						T currMax = dx[0];
+                                }
+                                else {
+                                    int maxIdx = 0;
+                                    T currMax = dx[0];
 #pragma omp parallel for shared(maxIdx,currMax)
-						for (int i = 0; i < length; i++) {
-							result[i * resultEleStride] = 0.0;
-							if (currMax < dx[i * eleStride]) {
-								currMax = dx[i * eleStride];
-								maxIdx = i;
-							}
-						}
+                                    for (int i = 0; i < length; i++) {
+                                        result[i * resultEleStride] = 0.0;
+                                        if (currMax < dx[i * eleStride]) {
+                                            currMax = dx[i * eleStride];
+                                            maxIdx = i;
+                                        }
+                                    }
 
-						result[maxIdx * resultEleStride] = 1.0;
-					}
+                                    result[maxIdx * resultEleStride] = 1.0;
+                                }
 
-				}
-			}
+                            }
+                        }
 
 
-			else {
-				int shapeIter[MAX_RANK];
-				int coord[MAX_RANK];
-				int dim;
-				int xStridesIter[MAX_RANK];
-				int resultStridesIter[MAX_RANK];
-				int *xShape = shape::shapeOf(xShapeBuffer);
-				int *xStride = shape::stride(xShapeBuffer);
-				int *resultStride = shape::stride(resultShapeBuffer);
-				int rank = shape::rank(xShapeBuffer);
-				if (PrepareTwoRawArrayIter<T>(rank,
-						xShape,
-						dx,
-						xStride,
-						result,
-						resultStride,
-						&rank,
-						shapeIter,
-						&dx,
-						xStridesIter,
-						&result,
-						resultStridesIter) >= 0) {
-					T *maxCursor = result;
-					ND4J_RAW_ITER_START(dim, rank, coord, shapeIter);
-					{
+                        else {
+                            int shapeIter[MAX_RANK];
+                            int coord[MAX_RANK];
+                            int dim;
+                            int xStridesIter[MAX_RANK];
+                            int resultStridesIter[MAX_RANK];
+                            int *xShape = shape::shapeOf(xShapeBuffer);
+                            int *xStride = shape::stride(xShapeBuffer);
+                            int *resultStride = shape::stride(resultShapeBuffer);
+                            int rank = shape::rank(xShapeBuffer);
+                            T *originalResult = result;
+                            if (PrepareTwoRawArrayIter<T>(rank,
+                                                          xShape,
+                                                          dx,
+                                                          xStride,
+                                                          result,
+                                                          resultStride,
+                                                          &rank,
+                                                          shapeIter,
+                                                          &dx,
+                                                          xStridesIter,
+                                                          &result,
+                                                          resultStridesIter) >= 0) {
+                                T *maxCursor = result;
+                                T value = dx[0];
+                                int idx = 0;
+                                int maxIdx = 0;
+                                ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
+                                    if(dx[0] > value) {
+                                        maxCursor = result;
+                                        value = dx[0];
+                                        maxIdx = idx;
+                                    }
 
-						result[0] = 0.0;
-						if(dx[0] > maxCursor[0]) {
-							maxCursor = result;
-						}
-					}
-					ND4J_RAW_ITER_TWO_NEXT(dim,
-							rank,
-							coord,
-							shapeIter,
-							dx,
-							xStridesIter,
-							result,
-							resultStridesIter);
+                                    idx++;
+                                    result[0] = 0.0;
 
-					//pointer to where max value would be
-					maxCursor[0] = 1.0;
-				}
-			}
+                                }
+                                ND4J_RAW_ITER_TWO_NEXT(
+                                        dim,
+                                        rank,
+                                        coord,
+                                        shapeIter,
+                                        dx,
+                                        xStridesIter,
+                                        result,
+                                        resultStridesIter);
 
-		}
-	}
-public:
+                                //pointer to where max value would be
+                                if(shape::order(resultShapeBuffer) == 'c' || (shape::order(resultShapeBuffer) == 'f' &&
+                                                                                     maxIdx * shape::stride(resultShapeBuffer)[shape::rank(resultShapeBuffer) - 1] >=
+                                                                                             shape::length(resultShapeBuffer)))
+                                    originalResult[maxIdx] = 1.0;
+                                else
+                                    originalResult[maxIdx * shape::stride(resultShapeBuffer)[shape::rank(resultShapeBuffer) - 1]] = 1.0;
+                            }
+                        }
+
+                    }
+                }
+            public:
 
 
 #ifdef __CUDACC__
-	/**
+                /**
 	 *
 	 */
 
@@ -4940,10 +4952,10 @@ public:
 	 */
 	virtual void execSpecial(
 			T *dx,
-			int *xShapeBuffer,
+                        int *xShapeBuffer,
 			T *result,
 			int *resultShapeBuffer,
-			T *extraParams) {
+                        T *extraParams) override {
                 if(extraParams == NULL || extraParams[0] == 0 || (extraParams[0] == 1 && extraParams[1] == shape::MAX_DIMENSION)) {
 			this->doAll(dx,xShapeBuffer,result,resultShapeBuffer,extraParams);
 		}
@@ -4955,10 +4967,10 @@ public:
 			}
 
 			int tads = shape::tensorsAlongDimension(xShapeBuffer,dimension.data(),dimensionLength);
-			int *tadShapeInfo = shape::tadShapeInfo(0,xShapeBuffer,dimension.data(),dimensionLength);
+                        int *tadShapeInfo = shape::tadShapeInfo(0,xShapeBuffer,dimension.data(),dimensionLength);
 			for(int i = 0; i < tads; i++) {
 				int offset = shape::tadOffset(i,xShapeBuffer,dimension.data(),dimensionLength);
-				this->doAll(dx + offset,tadShapeInfo,result + offset,tadShapeInfo,extraParams);
+                                this->doAll(dx + offset,tadShapeInfo,result + offset,resultShapeBuffer,extraParams);
 			}
 		}
 
@@ -4978,215 +4990,215 @@ public:
 
 
 #endif
-	T op(T d1, T *params) {
-		return nd4j::math::softplus<T>(d1);
-	}
+                T op(T d1, T *params) {
+                    return nd4j::math::softplus<T>(d1);
+                }
 
 
 #ifdef __CUDACC__
-	inline __host__ __device__
+                inline __host__ __device__
 #elif defined(__GNUC__)
 
 
 #endif
-	virtual ~IsMax() {
-	}
+                virtual ~IsMax() {
+                }
 #ifdef __CUDACC__
-	inline __host__  __device__
+                inline __host__  __device__
 
 #elif defined(__GNUC__)
 
 
 #endif
-	IsMax()
-	{
-		this->requiresSpecial = true;
-	}
+                IsMax()
+                {
+                    this->requiresSpecial = true;
+                }
 
 
-};
+            };
 
-}
+        }
 
 
-template<typename T>
-class TransformOpFactory {
-public:
+        template<typename T>
+        class TransformOpFactory {
+        public:
 #ifdef __CUDACC__
-	__device__ __host__
+            __device__ __host__
 #endif
 
-	TransformOpFactory() {
-	}
+            TransformOpFactory() {
+            }
 
 
 
-	/**
-	 * Create an op
-	 * @param op the op to create
-	 * 0: abs
-	 * 1: ceiling
-	 * 2: cosine
-	 * 3: exp
-	 * 4: floor
-	 * 5: log
-	 * 6: neg
-	 * 7: pow
-	 * 8: round
-	 * 9: setrange
-	 * 10:sigmoid
-	 * 11: sign
-	 * 12: sin
-	 * 13:softplus
-	 * 14:sqrt
-	 * 15:tanh
-	 * 16:acos
-	 * 17:asin
-	 * 18:atan
-	 * @return the op given the number
-	 */
+            /**
+             * Create an op
+             * @param op the op to create
+             * 0: abs
+             * 1: ceiling
+             * 2: cosine
+             * 3: exp
+             * 4: floor
+             * 5: log
+             * 6: neg
+             * 7: pow
+             * 8: round
+             * 9: setrange
+             * 10:sigmoid
+             * 11: sign
+             * 12: sin
+             * 13:softplus
+             * 14:sqrt
+             * 15:tanh
+             * 16:acos
+             * 17:asin
+             * 18:atan
+             * @return the op given the number
+             */
 #ifdef __CUDACC__
-	__inline__ __device__ __host__
+            __inline__ __device__ __host__
 #endif
 
-	Transform<T> *getOp(int op) {
-		//gets stuck on string comparison
-		Transform<T> *ret = NULL;
-		/**
-		 * We are likely going to need constant symbols for device memory for different operations
-		 * or switch to arithmetic based approaches?
-		 */
-		if (op == 0) {
-			ret = new transform::ops::Abs<T>();
-		}
-		else if (op == 1) {
-			ret = new transform::ops::Ceiling<T>();
-		}
-		if (op == 2) {
-			ret = new transform::ops::Cosine<T>();
-		}
-		else if (op == 3) {
-			ret = new transform::ops::Exp<T>();
-		}
-		else if (op == 4) {
-			ret = new transform::ops::Floor<T>();
-		}
-		else if (op == 5) {
-			ret = new transform::ops::Log<T>();
-		}
-		else if (op == 6) {
-			ret = new transform::ops::Neg<T>();
-		}
-		else if (op == 7) {
-			ret = new transform::ops::Pow<T>();
-		}
-		else if (op == 8) {
-			ret = new transform::ops::Round<T>();
-		}
-		else if (op == 9) {
-			ret = new transform::ops::SetRange<T>();
-		}
-		else if (op == 10) {
-			ret = new transform::ops::Sigmoid<T>();
-		}
-		else if (op == 11) {
-			ret = new transform::ops::Sign<T>();
-		}
-		else if (op == 12) {
-			ret = new transform::ops::Sin<T>();
-		}
-		else if (op == 13) {
-			ret = new transform::ops::SoftPlus<T>();
-		}
-		else if (op == 14) {
-			ret = new transform::ops::Sqrt<T>();
-		}
-		else if (op == 15) {
-			ret = new transform::ops::Tanh<T>();
-		}
-		else if (op == 16) {
-			ret = new transform::ops::ACos<T>();
-		}
-		else if (op == 17) {
-			ret = new transform::ops::ASin<T>();
-		}
-		else if (op == 18) {
-			ret = new transform::ops::ATan<T>();
-		}
-		else if (op == 19) {
-			ret = new transform::ops::HardTanh<T>();
-		}
-		else if (op == 20) {
-			ret = new transform::ops::SoftSign<T>();
-		}
-		else if (op == 21) {
-			ret = new transform::ops::ELU<T>();
-		}
-		else if (op == 22) {
-			ret = new transform::ops::ELUDerivative<T>();
-		}
-		else if (op == 23) {
-			return new transform::ops::TanhDerivative<T>();
-		}
-		else if (op == 24) {
-			return new transform::ops::TimesOneMinus<T>();
-		}
-		else if(op == 25) {
-			return new transform::ops::HardTanhDerivative<T>();
-		}
-		else if(op == 26) {
-			return new transform::ops::Ones<T>();
-		}
-		else if(op == 27) {
-			return new transform::ops::Identity<T>();
-		}
-		else if(op == 28) {
-			return new transform::ops::Stabilize<T>();
-		}
-		else if(op == 29) {
-			return new transform::ops::SigmoidDerivative<T>();
-		}
-		else if(op == 30) {
-			return new transform::ops::SoftSignDerivative<T>();
-		}
-		else if(op == 31) {
-			return new transform::ops::LeakyRELU<T>();
-		}
-		else if(op == 32) {
-			return new transform::ops::LeakyRELUDerivative<T>();
-		}
-		else if(op == 33) {
-			return new transform::ops::RELU<T>();
-		}
-		else if(op == 34) {
-			return new transform::ops::Step<T>();
-		}
-		else if(op == 35) {
-			return new transform::ops::OneMinus<T>();
-		}
-		else if(op == 36) {
-			return new transform::ops::Col2Im<T>();
-		}
-		else if(op == 37) {
-			return new transform::ops::Im2col<T>();
-		}
-		else if(op == 38) {
-			return new transform::ops::SoftMax<T>();
-		}
-		else if(op == 39) {
-			return new transform::ops::SoftMaxDerivative<T>();
-		}
-		else if(op == 40) {
-			return new transform::ops::LogSoftMax<T>();
-		}
-		else if(op == 41) {
-			return new transform::ops::IsMax<T>();
-		}
-		return ret;
-	}
+            Transform<T> *getOp(int op) {
+                //gets stuck on string comparison
+                Transform<T> *ret = NULL;
+                /**
+                 * We are likely going to need constant symbols for device memory for different operations
+                 * or switch to arithmetic based approaches?
+                 */
+                if (op == 0) {
+                    ret = new transform::ops::Abs<T>();
+                }
+                else if (op == 1) {
+                    ret = new transform::ops::Ceiling<T>();
+                }
+                if (op == 2) {
+                    ret = new transform::ops::Cosine<T>();
+                }
+                else if (op == 3) {
+                    ret = new transform::ops::Exp<T>();
+                }
+                else if (op == 4) {
+                    ret = new transform::ops::Floor<T>();
+                }
+                else if (op == 5) {
+                    ret = new transform::ops::Log<T>();
+                }
+                else if (op == 6) {
+                    ret = new transform::ops::Neg<T>();
+                }
+                else if (op == 7) {
+                    ret = new transform::ops::Pow<T>();
+                }
+                else if (op == 8) {
+                    ret = new transform::ops::Round<T>();
+                }
+                else if (op == 9) {
+                    ret = new transform::ops::SetRange<T>();
+                }
+                else if (op == 10) {
+                    ret = new transform::ops::Sigmoid<T>();
+                }
+                else if (op == 11) {
+                    ret = new transform::ops::Sign<T>();
+                }
+                else if (op == 12) {
+                    ret = new transform::ops::Sin<T>();
+                }
+                else if (op == 13) {
+                    ret = new transform::ops::SoftPlus<T>();
+                }
+                else if (op == 14) {
+                    ret = new transform::ops::Sqrt<T>();
+                }
+                else if (op == 15) {
+                    ret = new transform::ops::Tanh<T>();
+                }
+                else if (op == 16) {
+                    ret = new transform::ops::ACos<T>();
+                }
+                else if (op == 17) {
+                    ret = new transform::ops::ASin<T>();
+                }
+                else if (op == 18) {
+                    ret = new transform::ops::ATan<T>();
+                }
+                else if (op == 19) {
+                    ret = new transform::ops::HardTanh<T>();
+                }
+                else if (op == 20) {
+                    ret = new transform::ops::SoftSign<T>();
+                }
+                else if (op == 21) {
+                    ret = new transform::ops::ELU<T>();
+                }
+                else if (op == 22) {
+                    ret = new transform::ops::ELUDerivative<T>();
+                }
+                else if (op == 23) {
+                    return new transform::ops::TanhDerivative<T>();
+                }
+                else if (op == 24) {
+                    return new transform::ops::TimesOneMinus<T>();
+                }
+                else if(op == 25) {
+                    return new transform::ops::HardTanhDerivative<T>();
+                }
+                else if(op == 26) {
+                    return new transform::ops::Ones<T>();
+                }
+                else if(op == 27) {
+                    return new transform::ops::Identity<T>();
+                }
+                else if(op == 28) {
+                    return new transform::ops::Stabilize<T>();
+                }
+                else if(op == 29) {
+                    return new transform::ops::SigmoidDerivative<T>();
+                }
+                else if(op == 30) {
+                    return new transform::ops::SoftSignDerivative<T>();
+                }
+                else if(op == 31) {
+                    return new transform::ops::LeakyRELU<T>();
+                }
+                else if(op == 32) {
+                    return new transform::ops::LeakyRELUDerivative<T>();
+                }
+                else if(op == 33) {
+                    return new transform::ops::RELU<T>();
+                }
+                else if(op == 34) {
+                    return new transform::ops::Step<T>();
+                }
+                else if(op == 35) {
+                    return new transform::ops::OneMinus<T>();
+                }
+                else if(op == 36) {
+                    return new transform::ops::Col2Im<T>();
+                }
+                else if(op == 37) {
+                    return new transform::ops::Im2col<T>();
+                }
+                else if(op == 38) {
+                    return new transform::ops::SoftMax<T>();
+                }
+                else if(op == 39) {
+                    return new transform::ops::SoftMaxDerivative<T>();
+                }
+                else if(op == 40) {
+                    return new transform::ops::LogSoftMax<T>();
+                }
+                else if(op == 41) {
+                    return new transform::ops::IsMax<T>();
+                }
+                return ret;
+            }
 
-};
-}
+        };
+    }
 }
 
 
@@ -5528,7 +5540,6 @@ extern "C" __global__ void transformFloatIndexes(
 			result,indexes);
 
 }
-
 
 #endif
 

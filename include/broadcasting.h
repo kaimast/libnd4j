@@ -297,8 +297,8 @@ public:
 			if (numOnes > 0) {
 				xShapeInfo = shape::squeezeDimensions(
 						xShapeInfo,
-						&dimension,
-						&dimensionLength,
+                                                dimension,
+                                                dimensionLength,
 						&squeezed,
 						&newSqueezeDimensions,
 						wholeRank,
